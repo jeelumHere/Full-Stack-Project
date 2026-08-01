@@ -1,9 +1,12 @@
 import bcrypt from "bcrypt"
-import userModel from "../models/user.model.js"
+import jwt from "jsonwebtoken"
+import config from "../config/config.js"
 import { sendEmail } from "../services/email.service.js"
 import { getOtpHtml, generateOtp } from "../utils/otp.utils.js"
+import userModel from "../models/user.model.js"
+import sessionModel from "../models/session.model.js"
 import otpModel from "../models/otp.model.js"
-
+import crypto from "crypto"
 
 export async function register(req, res) {
 
@@ -108,11 +111,11 @@ export async function login(req, res) {
     }
 }
 
-export async function getOtp(req,res) {
+export async function getOtp(req, res) {
     try {
-        const {email} = req.body
-        const user = await userModel.findOne({email:email})
-        await otpModel.deleteMany({user:user._id})
+        const { email } = req.body
+        const user = await userModel.findOne({ email: email })
+        await otpModel.deleteMany({ user: user._id })
         const otp = generateOtp()
         const html = getOtpHtml(otp)
         await sendEmail(email, "OTP Verification", "Verify Your Account", html)
@@ -136,13 +139,13 @@ export async function getOtp(req,res) {
         }
 
         return res.status(201).json({
-            message : "otp sent successfully"
+            message: "otp sent successfully"
         })
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            error : 'Server Error',
-            message : err.message
+            error: 'Server Error',
+            message: err.message
         })
     }
 }
@@ -175,9 +178,43 @@ export async function verifyEmail(req, res) {
 
         await otpModel.deleteMany({ email: email, user: user._id })
 
+        const refreshToken = jwt.sign({ id: user._id, role: user.role }, config.jwtSecret, { expiresIn: "7d" })
+        const accessToken = jwt.sign({ id: user._id, role: user.role }, config.jwtSecret, { expiresIn: "15m" })
+
+        const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
+
+
+        const session = await sessionModel.findOneAndUpdate(
+            {
+                user: user._id,
+                userAgent: req.headers['user-agent'] // Match condition 
+            },
+            {
+                refreshToken: refreshTokenHash,
+                ip: req.ip,
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days 
+            },
+            {
+                new: true,   // Return the updated document
+                upsert: true // Create a new one if it does not exist
+            }
+        );
+
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/api/auth/refresh'
+        });
+
+
+
         return res.status(201).json({
             message: "Email Verified",
-            User: user
+            User: user,
+            accessToken
         })
     }
     catch (err) {
