@@ -6,6 +6,8 @@ const authRouter = Router()
 
 authRouter.post("/register",authMiddleware.validateUserInput,authControllers.register)
 authRouter.post("/login",authControllers.login)
+authRouter.post("/verifyEmail",authControllers.verifyEmail)
+authRouter.post("/getOtp",authControllers.getOtp)
 
 
 export default authRouter

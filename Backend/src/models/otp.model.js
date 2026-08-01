@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"
 
 const otpSchema = new mongoose.Schema({
   email: {
@@ -24,6 +24,10 @@ const otpSchema = new mongoose.Schema({
   attempts: {
     type: Number,
     default: 0,
+  },
+  expiresAt : {
+    type :Date,
+    required: true
   }
 }, { timestamps: true });
 

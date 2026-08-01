@@ -35,3 +35,5 @@ const sendEmail = async (to, subject, text, html) => {
     console.error('Error sending email:', error);
   }
 };
+
+export {sendEmail}
