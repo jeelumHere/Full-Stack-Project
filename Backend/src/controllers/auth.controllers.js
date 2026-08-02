@@ -2,12 +2,10 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import config from "../config/config.js"
 import { sendEmail } from "../services/email.service.js"
-import { getOtpHtml, generateOtp } from "../utils/otp.utils.js"
+import { getOtpHtml, generateOtp, createSession, getTheOtp } from "../utils/otp.utils.js"
 import userModel from "../models/user.model.js"
 import sessionModel from "../models/session.model.js"
 import otpModel from "../models/otp.model.js"
-import getTheOtp from "../utils/getOtp.utils.js"
-import createSession from "../utils/createSession.js"
 import crypto from "crypto"
 
 export async function register(req, res) {
@@ -42,11 +40,11 @@ export async function register(req, res) {
         const safeUser = user.toObject()
         delete safeUser.password
 
-        await getTheOtp(email)
+        await getTheOtp(req,res,email)
 
         return res.status(201).json({
             message: 'User registered successfully',
-            User: user
+            User: safeUser
         })
     }
     catch (err) {
