@@ -43,7 +43,6 @@ async function createSession(req,res,user,refreshToken,refreshTokenHash) {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 maxAge: 400 * 24 * 60 * 60 * 1000, // long-lived, e.g. ~13 months
-                path: '/api/auth' // broader path since it's not refresh-specific
             });
         }
 
@@ -63,7 +62,6 @@ async function createSession(req,res,user,refreshToken,refreshTokenHash) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: '/api/auth/refresh'
         });
 }
 

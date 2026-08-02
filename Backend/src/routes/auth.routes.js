@@ -8,6 +8,7 @@ authRouter.post("/register",authMiddleware.validateUserInput,authControllers.reg
 authRouter.post("/login",authControllers.login)
 authRouter.post("/verifyEmail",authControllers.verifyEmail)
 authRouter.post("/getOtp",authControllers.getOtp)
+authRouter.get("/getMe",authMiddleware.validateUserAccessToken,authControllers.getMe)
 
 
 export default authRouter
