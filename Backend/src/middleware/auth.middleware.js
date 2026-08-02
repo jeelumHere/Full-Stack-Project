@@ -58,6 +58,12 @@ export async function validateUserAccessToken(req, res, next) {
             })
         }
 
+        if(!user.isEmailVerified){
+            return res.status(404).json({
+                message : "Email not verified"
+            })
+        }
+
         const deviceId = req.cookies.deviceId
         if (!deviceId) {
             return res.status(404).json({

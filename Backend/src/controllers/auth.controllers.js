@@ -40,7 +40,7 @@ export async function register(req, res) {
         const safeUser = user.toObject()
         delete safeUser.password
 
-        await getTheOtp(req,res,email)
+        await getTheOtp(req, res, email)
 
         return res.status(201).json({
             message: 'User registered successfully',
@@ -77,14 +77,14 @@ export async function login(req, res) {
 
         const { password: _, ...userWithoutPassword } = user.toObject()
 
-        await getTheOtp(req,res,user.email)
+        await getTheOtp(req, res, user.email)
 
         const refreshToken = jwt.sign({ id: user._id, role: user.role }, config.jwtRefreshSecret, { expiresIn: "7d" })
         const accessToken = jwt.sign({ id: user._id, role: user.role }, config.jwtAccessSecret, { expiresIn: "15m" })
 
         const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
 
-        await createSession(req,res,user,refreshToken,refreshTokenHash)
+        await createSession(req, res, user, refreshToken, refreshTokenHash)
 
         return res.status(200).json({
             message: 'User logged in successfully',
@@ -110,7 +110,7 @@ export async function verifyEmail(req, res) {
                 message: "Otp Expired Try again"
             })
         }
-        
+
         const isValidOtp = await bcrypt.compare(otp, otpDoc.otp)
         if (!isValidOtp) {
             return res.status(401).json({
@@ -134,7 +134,7 @@ export async function verifyEmail(req, res) {
 
         const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
 
-        await createSession(req,res,user,refreshToken,refreshTokenHash)
+        await createSession(req, res, user, refreshToken, refreshTokenHash)
 
         return res.status(201).json({
             message: "Email Verified",
@@ -155,8 +155,8 @@ export async function getOtp(req, res) {
         const { email } = req.body
         const user = await userModel.findOne({ email: email })
         await otpModel.deleteMany({ user: user._id })
-        
-        await getTheOtp(req,res,email)
+
+        await getTheOtp(req, res, email)
 
         return res.status(201).json({
             message: "otp sent successfully"
@@ -170,21 +170,94 @@ export async function getOtp(req, res) {
     }
 }
 
-export async function getMe(req,res){
-    try{
+export async function getMe(req, res) {
+    try {
         const user = req.user
         const accessToken = req.accessToken
 
         return res.status(200).json({
-            message : "User fetched successfully",
-            User : user,
+            message: "User fetched successfully",
+            User: user,
             accessToken
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}
+
+export async function refreshToken(req, res) {
+    try {
+        const user = req.user
+
+        const refreshToken = jwt.sign({ id: user._id, role: user.role }, config.jwtRefreshSecret, { expiresIn: "7d" })
+        const accessToken = jwt.sign({ id: user._id, role: user.role }, config.jwtAccessSecret, { expiresIn: "15m" })
+
+        const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
+
+        await createSession(req, res, user, refreshToken, refreshTokenHash)
+
+        return res.status(200).json({
+            message: "Token refreshed",
+            accessToken
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server error",
+            message: err.message
+        })
+    }
+}
+
+export async function logout(req, res) {
+    try {
+        const user = req.user
+        user.isEmailVerified = false
+        user.save()
+
+        const deviceId = req.cookies.deviceId
+
+        const session = await sessionModel.findOneAndDelete({user:user._id,deviceId:deviceId})
+
+        res.clearCookie("deviceId")
+        res.clearCookie("refreshToken")
+
+        return res.status(200).json({
+            message : "user logged Out successfully"
         })
     }
     catch(err){
         return res.status(500).json({
             error : "Server Error",
-            message : err.message
+            message : err.message 
+        })
+    }
+}
+
+
+export async function logoutAll(req, res) {
+    try {
+        const user = req.user
+        user.isEmailVerified = false
+        user.save()
+
+        const session = await sessionModel.deleteMany({user:user._id})
+
+        res.clearCookie("deviceId")
+        res.clearCookie("refreshToken")
+
+        return res.status(200).json({
+            message : "Logged Out from all devices"
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            error : "Server Error",
+            message : err.message 
         })
     }
 }
