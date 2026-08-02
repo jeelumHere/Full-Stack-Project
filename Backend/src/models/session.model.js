@@ -8,10 +8,14 @@ const sessionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    deviceId: {
+      type: String,
+      required: true,
+      index: true,
+    },
     refreshToken: {
       type: String,
       required: true,
-      unique: true,
     },
     userAgent: {
       type: String,
@@ -22,10 +26,12 @@ const sessionSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // auto-delete on expiry
+      index: { expires: 0 },
     },
   },
   { timestamps: true }
 );
+
+sessionSchema.index({ user: 1, deviceId: 1 }, { unique: true });
 
 export default mongoose.model("Sessions", sessionSchema);
