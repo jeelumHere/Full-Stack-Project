@@ -22,6 +22,12 @@ if(!process.env.GOOGLE_REFRESH_TOKEN){
 if(!process.env.GOOGLE_USER){
     throw new Error("GOOGLE_USER is not present in environmental variables")
 }
+if(!process.env.PRIVATE_KEY){
+    throw new Error("PRIVATE_KEY is not present in environmental variables")
+}
+if(!process.env.PUBLIC_KEY){
+    throw new Error("PUBLIC_KEY is not present in environmental variables")
+}
 
 
 const config = {
@@ -31,7 +37,9 @@ const config = {
     googleClientId : process.env.GOOGLE_CLIENT_ID,
     googleClientSecret : process.env.GOOGLE_CLIENT_SECRET,
     googleRefreshToken : process.env.GOOGLE_REFRESH_TOKEN,
-    googleUser : process.env.GOOGLE_USER
+    googleUser : process.env.GOOGLE_USER,
+    privateKey : process.env.PRIVATE_KEY,
+    publicKey : process.env.PUBLIC_KEY
 }
 
 export default config
