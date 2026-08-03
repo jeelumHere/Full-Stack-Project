@@ -173,12 +173,10 @@ export async function getOtp(req, res) {
 export async function getMe(req, res) {
     try {
         const user = req.user
-        const accessToken = req.accessToken
 
         return res.status(200).json({
             message: "User fetched successfully",
-            User: user,
-            accessToken
+            User: user
         })
     }
     catch (err) {

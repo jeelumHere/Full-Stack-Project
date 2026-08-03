@@ -59,7 +59,7 @@ export async function validateUserAccessToken(req, res, next) {
         }
 
         if(!user.isEmailVerified){
-            return res.status(404).json({
+            return res.status(403).json({
                 message : "Email not verified"
             })
         }
@@ -80,6 +80,59 @@ export async function validateUserAccessToken(req, res, next) {
 
         req.user = user
         req.accessToken = accessToken
+        next()
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}
+
+
+export async function validateUserRefreshToken(req, res, next) {
+    try {
+
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                message: "Refresh token not found in cookies"
+            });
+        }
+
+        const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret)
+
+        const user = await userModel.findById(decoded.id)
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            })
+        }
+
+        if(!user.isEmailVerified){
+            return res.status(403).json({
+                message : "Email not verified"
+            })
+        }
+
+        const deviceId = req.cookies.deviceId
+        if (!deviceId) {
+            return res.status(404).json({
+                message: "deviceId not found"
+            })
+        }
+
+        const session = await sessionModel.findOne({deviceId:deviceId, user: user._id })
+        if (!session) {
+            return res.status(404).json({
+                message: "session not found"
+            })
+        }
+
+        req.user = user
         next()
     }
     catch (err) {

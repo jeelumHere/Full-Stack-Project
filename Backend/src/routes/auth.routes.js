@@ -9,7 +9,7 @@ authRouter.post("/login",authControllers.login)
 authRouter.post("/verifyEmail",authControllers.verifyEmail)
 authRouter.post("/getOtp",authControllers.getOtp)
 authRouter.get("/getMe",authMiddleware.validateUserAccessToken,authControllers.getMe)
-authRouter.post("/refreshToken",authMiddleware.validateUserAccessToken,authControllers.refreshToken)
+authRouter.post("/refreshToken",authMiddleware.validateUserRefreshToken,authControllers.refreshToken)
 authRouter.post("/logout",authMiddleware.validateUserAccessToken,authControllers.logout)
 authRouter.post("/logoutAll",authMiddleware.validateUserAccessToken,authControllers.logoutAll)
 
