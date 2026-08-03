@@ -214,24 +214,23 @@ export async function refreshToken(req, res) {
 export async function logout(req, res) {
     try {
         const user = req.user
-        user.isEmailVerified = false
-        user.save()
+        await user.save()
 
         const deviceId = req.cookies.deviceId
 
-        const session = await sessionModel.findOneAndDelete({user:user._id,deviceId:deviceId})
+        const session = await sessionModel.findOneAndDelete({ user: user._id, deviceId: deviceId })
 
         res.clearCookie("deviceId")
         res.clearCookie("refreshToken")
 
         return res.status(200).json({
-            message : "user logged Out successfully"
+            message: "user logged Out successfully"
         })
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            error : "Server Error",
-            message : err.message 
+            error: "Server Error",
+            message: err.message
         })
     }
 }
@@ -241,21 +240,49 @@ export async function logoutAll(req, res) {
     try {
         const user = req.user
         user.isEmailVerified = false
-        user.save()
+        await user.save()
 
-        const session = await sessionModel.deleteMany({user:user._id})
+        const session = await sessionModel.deleteMany({ user: user._id })
 
         res.clearCookie("deviceId")
         res.clearCookie("refreshToken")
 
         return res.status(200).json({
-            message : "Logged Out from all devices"
+            message: "Logged Out from all devices"
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}
+
+export async function setNewPassword(req, res) {
+    try {
+        const user = req.user
+        const { newPassword, confirmPassword } = req.body
+
+        if (!(newPassword === confirmPassword)) {
+            return res.status(400).json({
+                message: "Password and Confirm Password do not match"
+            })
+        }
+
+        const newPasswordHash = await bcrypt.hash(newPassword,10)
+
+        user.password = newPasswordHash
+        await user.save()
+
+        return res.status(200).json({
+            message : "Password updated successfully"
         })
     }
     catch(err){
         return res.status(500).json({
             error : "Server Error",
-            message : err.message 
+            message : err.message
         })
     }
 }

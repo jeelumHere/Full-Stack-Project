@@ -12,6 +12,7 @@ authRouter.get("/getMe",authMiddleware.validateUserAccessToken,authControllers.g
 authRouter.post("/refreshToken",authMiddleware.validateUserRefreshToken,authControllers.refreshToken)
 authRouter.post("/logout",authMiddleware.validateUserAccessToken,authControllers.logout)
 authRouter.post("/logoutAll",authMiddleware.validateUserAccessToken,authControllers.logoutAll)
+authRouter.post("/setNewPassword",authMiddleware.validateUserAccessToken,authControllers.setNewPassword)
 
 
 export default authRouter

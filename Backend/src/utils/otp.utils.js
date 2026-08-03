@@ -79,6 +79,6 @@ async function getTheOtp(req,res,email) {
             otp: otpHash,
             expiresAt: new Date(Date.now() + 3 * 60 * 1000)
         })
-        otpDoc.save()
+        await otpDoc.save()
 }
 export { getOtpHtml, generateOtp, createSession, getTheOtp}
