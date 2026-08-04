@@ -7,5 +7,6 @@ const imgRouter = Router()
 imgRouter.post("/uploadImages",imageMidlleware.validateUserAccessToken,imageControllers.uploadImages)
 imgRouter.delete("/deleteFolder",imageMidlleware.validateUserAccessToken,imageControllers.deleteFolder)
 imgRouter.delete("/deleteSubFolder",imageMidlleware.validateUserAccessToken,imageControllers.deleteSubFolder)
+imgRouter.delete("/deleteImages",imageMidlleware.validateUserAccessToken,imageControllers.deleteImages)
 
 export default imgRouter

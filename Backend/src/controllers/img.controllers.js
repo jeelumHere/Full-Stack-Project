@@ -17,16 +17,22 @@ export async function uploadImages(req, res) {
             files.map(ele => (imageKit.uploadFile(ele)))
         )
 
-        console.log(result);
-        const myImages = result.map(ele => ({ url: ele.url, fileId: ele.fileId, name: ele.name }))
-        console.log(myImages);
 
-        const images = await imageModel.create({
-            user: user._id,
-            images: myImages,
-            parentFolder: parentFolder,
-            folder: folder
+        const myImages = result.map(ele => ({ url: ele.url, fileId: ele.fileId, name: ele.name }))
+
+
+        const data01 = await imageModel.find({ user:user._id, parentFolder: parentFolder, folder: folder })
+
+        const oldImages = data01.flatMap(ele=>ele.images)
+        const combinedImages = [...myImages,...oldImages]
+        const data = await imageModel.findOneAndUpdate({ user:user._id, parentFolder: parentFolder, folder: folder },{
+            images: combinedImages,
+        },{
+            upsert:true, returnDocument: "after",
         })
+    
+
+        
         return res.status(201).json({
             message: "File uploaded successfully"
         })
@@ -62,7 +68,7 @@ export async function deleteFolder(req, res) {
 
 
         return res.status(200).json({
-            message: "All data has been cleared fromthe folder"
+            message: "All data has been cleared from the folder"
         })
     }
     catch (err) {
@@ -97,6 +103,40 @@ export async function deleteSubFolder(req, res) {
 
         return res.status(200).json({
             message: "Files deleted Successfully"
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}
+
+export async function deleteImages(req, res) {
+    try {
+
+        const user = req.user;
+        const { folder, parentFolder, fileIds } = req.body
+
+        const data = await imageModel.find(
+            { user: user._id, parentFolder: parentFolder, folder: folder }
+        )
+
+        const images = await data.flatMap(ele => ele.images)
+
+        console.log(images);
+        console.log(fileIds);
+
+        const updatedImages = images.filter(
+            image => !fileIds.includes(image.fileId)
+        );
+
+        console.log(updatedImages);
+
+        return res.status(200).json({
+            message: "Files deleted Successfully",
+            fileIds, data
         })
     }
     catch (err) {
