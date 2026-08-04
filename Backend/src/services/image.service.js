@@ -15,3 +15,12 @@ export async function uploadFile(file) {
 
     return result;
 }
+
+export async function deleteFile(fileId){
+
+    const result = await imagekit01.files.bulk.delete({
+        fileIds:fileId
+    })
+    return fileId
+
+}

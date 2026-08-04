@@ -14,6 +14,11 @@ const imageSchema = new mongoose.Schema({
             name: { type: String, required: true }
         }
     ],
+    parentFolder: {
+        type: String,
+        required: true,
+        trim: true
+    },
     folder: {
         type: String,
         required: true,

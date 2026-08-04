@@ -5,5 +5,6 @@ import {Router} from "express"
 
 const imgRouter = Router()
 imgRouter.post("/uploadImages",imageMidlleware.validateUserAccessToken,imageControllers.uploadImages)
+imgRouter.delete("/deleteImages",imageMidlleware.validateUserAccessToken,imageControllers.deleteImages)
 
 export default imgRouter
