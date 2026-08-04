@@ -1,5 +1,6 @@
 import * as imageKit from "../services/image.service.js"
 import imageModel from "../models/image.model.js"
+import userModel from "../models/user.model.js"
 
 
 export async function uploadImages(req, res) {
@@ -21,18 +22,18 @@ export async function uploadImages(req, res) {
         const myImages = result.map(ele => ({ url: ele.url, fileId: ele.fileId, name: ele.name }))
 
 
-        const data01 = await imageModel.find({ user:user._id, parentFolder: parentFolder, folder: folder })
+        const data01 = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder })
 
-        const oldImages = data01.flatMap(ele=>ele.images)
-        const combinedImages = [...myImages,...oldImages]
-        const data = await imageModel.findOneAndUpdate({ user:user._id, parentFolder: parentFolder, folder: folder },{
+        const oldImages = data01.flatMap(ele => ele.images)
+        const combinedImages = [...myImages, ...oldImages]
+        const data = await imageModel.findOneAndUpdate({ user: user._id, parentFolder: parentFolder, folder: folder }, {
             images: combinedImages,
-        },{
-            upsert:true, returnDocument: "after",
+        }, {
+            upsert: true, returnDocument: "after",
         })
-    
 
-        
+
+
         return res.status(201).json({
             message: "File uploaded successfully"
         })
@@ -116,27 +117,35 @@ export async function deleteSubFolder(req, res) {
 export async function deleteImages(req, res) {
     try {
 
-        const user = req.user;
-        const { folder, parentFolder, fileIds } = req.body
+        const user = req.user
 
-        const data = await imageModel.find(
+        const { folder, parentFolder } = req.body
+        const fileIds = JSON.parse(req.body.fileIds);
+
+        const imageData = await imageModel.find(
             { user: user._id, parentFolder: parentFolder, folder: folder }
         )
 
-        const images = await data.flatMap(ele => ele.images)
-
-        console.log(images);
-        console.log(fileIds);
-
-        const updatedImages = images.filter(
+        const updatedImages = imageData.flatMap(ele => (ele.images.filter(
             image => !fileIds.includes(image.fileId)
-        );
-
+        )))
         console.log(updatedImages);
+
+        const newImageData = await imageModel.findOneAndUpdate(
+            { user: user._id, parentFolder: parentFolder, folder: folder },
+            { images: updatedImages },
+            { upsert: true, returnDocument: "after", }
+        )
+
+        if (updatedImages.length === 0) {
+            await imageModel.deleteMany({ user: user._id, parentFolder: parentFolder, folder: folder })
+        }
+
+        console.log(fileIds)
+        const result = await imageKit.deleteFile(fileIds)
 
         return res.status(200).json({
             message: "Files deleted Successfully",
-            fileIds, data
         })
     }
     catch (err) {

@@ -16,11 +16,11 @@ export async function uploadFile(file) {
     return result;
 }
 
-export async function deleteFile(fileId){
+export async function deleteFile(fileIds) {
+    console.log(fileIds);
+    console.log(Array.isArray(fileIds));
 
-    const result = await imagekit01.files.bulk.delete({
-        fileIds:fileId
-    })
-    return fileId
-
+    return await imagekit01.files.bulk.delete({
+        fileIds,
+    });
 }
