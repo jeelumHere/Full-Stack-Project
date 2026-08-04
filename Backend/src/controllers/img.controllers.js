@@ -39,13 +39,13 @@ export async function uploadImages(req, res) {
     }
 }
 
-export async function deleteImages(req, res) {
+export async function deleteFolder(req, res) {
     try {
         const user = req.user;
-        const { folder, parentFolder } = req.body
+        const { parentFolder } = req.body
 
         const data = await imageModel.find(
-            { user: user._id, parentFolder: parentFolder}
+            { user: user._id, parentFolder: parentFolder }
         )
 
         const fileIds = data.flatMap(ele =>
@@ -55,7 +55,41 @@ export async function deleteImages(req, res) {
         const result = await imageKit.deleteFile(fileIds)
 
         await imageModel.deleteMany(
-            { user: user._id, parentFolder: parentFolder}
+            { user: user._id, parentFolder: parentFolder }
+        )
+
+
+
+
+        return res.status(200).json({
+            message: "All data has been cleared fromthe folder"
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}
+
+export async function deleteSubFolder(req, res) {
+    try {
+        const user = req.user;
+        const { folder, parentFolder } = req.body
+
+        const data = await imageModel.find(
+            { user: user._id, parentFolder: parentFolder, folder: folder }
+        )
+
+        const fileIds = data.flatMap(ele =>
+            ele.images.map(e => e.fileId)
+        );
+
+        const result = await imageKit.deleteFile(fileIds)
+
+        await imageModel.deleteMany(
+            { user: user._id, parentFolder: parentFolder, folder: folder }
         )
 
 
