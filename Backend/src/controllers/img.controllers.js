@@ -155,3 +155,29 @@ export async function deleteImages(req, res) {
         })
     }
 }
+
+export async function getImages(req, res) {
+    try {
+        const user = req.user;
+        const { parentFolder, folder } = req.body
+
+        const allImages = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder })
+
+        let data = allImages
+        const onlyImages = allImages.flatMap(ele=>(ele.images))
+
+        console.log(onlyImages);
+
+        return res.status(200).json({
+            message: "Data received successfully",
+            Data: data,
+            images: onlyImages
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            error : "Server Error",
+            message : err.message,
+        })
+    }
+}
