@@ -127,7 +127,7 @@ export async function deleteImages(req, res) {
         const imageData02 = await imageModel.find(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" }
         )
-        console.log("imageData01 "+imageData01 );
+        console.log("imageData01 " + imageData01);
         console.log("imageData02 " + imageData02);
 
         const updatedImages01 = imageData01.flatMap(ele => (ele.images.filter(
@@ -137,8 +137,8 @@ export async function deleteImages(req, res) {
             image => !fileIds.includes(image.fileId)
         )))
 
-        console.log("updatedImages01 "+updatedImages01);
-        console.log("updatedImages02 "+updatedImages02);
+        console.log("updatedImages01 " + updatedImages01);
+        console.log("updatedImages02 " + updatedImages02);
 
         const newImageData01 = await imageModel.findOneAndUpdate(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" },
@@ -153,10 +153,10 @@ export async function deleteImages(req, res) {
         )
 
         if (updatedImages01.length === 0) {
-            await imageModel.deleteMany({ user: user._id, parentFolder: parentFolder, folder: folder ,visibility: "Private"})
+            await imageModel.deleteMany({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
         }
         if (updatedImages02.length === 0) {
-            await imageModel.deleteMany({ user: user._id, parentFolder: parentFolder, folder: folder ,visibility: "Public"})
+            await imageModel.deleteMany({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" })
         }
 
         const result = await imageKit.deleteFile(fileIds)
@@ -248,4 +248,53 @@ export async function uploadPublicImages(req, res) {
         })
     }
 
+}
+
+export async function deletePublicImages(req, res) {
+    try {
+        const user = req.user
+        const { parentFolder, folder } = req.body
+        const fileIds = JSON.parse(req.body.fileIds)
+
+        if (!parentFolder || !folder || !Array.isArray(fileIds) || fileIds.length === 0) {
+            return res.status(400).json({
+                message: "Provide required credentials"
+            })
+        }
+
+        const data = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" })
+
+        if (!data || data.length === 0) {
+            return res.status(401).json({
+                message: "No images are found"
+            })
+        }
+
+        const updatedImages = data.flatMap(ele =>
+            ele.images.filter(image => !fileIds.includes(image.fileId.toString()))
+        )
+
+        if (updatedImages.length === 0) {
+            await imageModel.findOneAndDelete(
+                { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" }
+            )
+        } else {
+            await imageModel.findOneAndUpdate(
+                { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" },
+                { images: updatedImages },
+                { new: true }
+            )
+        }
+
+        return res.status(200).json({
+            message: "Public Data deleted successfully"
+        })
+
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
 }
