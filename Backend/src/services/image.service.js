@@ -17,10 +17,9 @@ export async function uploadFile(file) {
 }
 
 export async function deleteFile(fileIds) {
-    console.log(fileIds);
-    console.log(Array.isArray(fileIds));
+    if (!Array.isArray(fileIds) || fileIds.length === 0) {
+        return { successfullyDeletedFileIds: [], errors: [] };
+    }
 
-    return await imagekit01.files.bulk.delete({
-        fileIds,
-    });
+    return await imagekit01.files.bulk.delete({ fileIds });
 }

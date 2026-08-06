@@ -23,6 +23,13 @@ const imageSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+    },
+    visibility : {
+        type: String,
+        required : true,
+        trim : true,
+        enum : ["Private","Public"],
+        default : "Private"
     }
 }, {
     timestamps: true
