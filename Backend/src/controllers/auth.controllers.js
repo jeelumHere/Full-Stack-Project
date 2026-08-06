@@ -192,7 +192,7 @@ export async function refreshToken(req, res) {
         const user = req.user
 
         const refreshToken = jwt.sign({ id: user._id, role: user.role }, config.jwtRefreshSecret, { expiresIn: "7d" })
-        const accessToken = jwt.sign({ id: user._id, role: user.role }, config.jwtAccessSecret, { expiresIn: "15m" })
+        const accessToken = jwt.sign({ id: user._id, role: user.role }, config.jwtAccessSecret, { expiresIn: "59m" })
 
         const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
 

@@ -11,5 +11,6 @@ imgRouter.delete("/deleteImages",imageMidlleware.validateUserAccessToken,imageCo
 imgRouter.get("/getImages",imageMidlleware.validateUserAccessToken,imageControllers.getImages)
 imgRouter.post("/uploadPublicImages",imageMidlleware.validateUserAccessToken,imageControllers.uploadPublicImages)
 imgRouter.delete("/deletePublicImages",imageMidlleware.validateUserAccessToken,imageControllers.deletePublicImages)
+imgRouter.get("/getPublicImages",imageMidlleware.validateUserAccessToken,imageControllers.getPublicImages)
 
 export default imgRouter

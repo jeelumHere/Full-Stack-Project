@@ -178,7 +178,7 @@ export async function getImages(req, res) {
         const user = req.user;
         const { parentFolder, folder } = req.body
 
-        const allImages = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder })
+        const allImages = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility:"Private" })
 
         let data = allImages
         const onlyImages = allImages.flatMap(ele => (ele.images))
@@ -295,6 +295,42 @@ export async function deletePublicImages(req, res) {
         return res.status(500).json({
             error: "Server Error",
             message: err.message
+        })
+    }
+}
+
+export async function getPublicImages(req, res) {
+    try {
+        const user = req.user;
+        const { parentFolder, folder } = req.body
+
+        if (!parentFolder || !folder) {
+            return res.status(400).json({
+                message: "Provide required credentials"
+            })
+        }
+
+        const publicImages = await imageModel.find(
+            { parentFolder: parentFolder, folder: folder, visibility: "Public" }
+        )
+
+        if (publicImages.length === 0) {
+            return res.status(200).json({
+                message: "No images present"
+            })
+        }
+
+        const imagesData = await publicImages.flatMap(ele=>(ele.images))
+        return res.status(200).json({
+            message: "Data fetched successfully",
+            data: publicImages,
+            images:  imagesData
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            error : "Server Error",
+            message : err.message
         })
     }
 }
