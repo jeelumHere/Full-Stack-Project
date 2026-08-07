@@ -150,3 +150,25 @@ export async function acceptInvitation(req, res) {
         })
     }
 }
+
+export async function myGroups(req, res) {
+    try {
+        const user = req.user
+
+        const groups = await groupModel.find({
+            "members.user": user._id
+        });
+
+        return res.status(200).json({
+            message: "Data fetched successfully",
+            groups: groups
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            error : "Server Error",
+            message : err.message
+        })
+    }
+
+}

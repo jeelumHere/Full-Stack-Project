@@ -8,5 +8,6 @@ grpRouter.post("/createGroup",authMiddleware.validateUserAccessToken,grpControll
 grpRouter.post("/:groupId/addMember",authMiddleware.validateUserAccessToken,grpControllers.addMember)
 grpRouter.post("/invitation",authMiddleware.validateUserAccessToken,grpControllers.invitation)
 grpRouter.post("/acceptInvitation",authMiddleware.validateUserAccessToken,grpControllers.acceptInvitation)
+grpRouter.get("/myGroups",authMiddleware.validateUserAccessToken,grpControllers.myGroups)
 
 export default grpRouter
