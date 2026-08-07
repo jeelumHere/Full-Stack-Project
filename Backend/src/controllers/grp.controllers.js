@@ -1,6 +1,9 @@
 import groupModel from "../models/group.model.js";
 import userModel from '../models/user.model.js'
 import inviteModel from '../models/addMember.model.js'
+import grpImageModel from "../models/grp.Images.model.js"
+import * as imageKit from "../services/image.service.js"
+
 export async function createGroup(req, res) {
     try {
         const user = req.user
@@ -164,11 +167,61 @@ export async function myGroups(req, res) {
             groups: groups
         })
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            error : "Server Error",
-            message : err.message
+            error: "Server Error",
+            message: err.message
         })
     }
+}
 
+export async function uploadImages(req, res) {
+
+    try {
+        const files = req.files
+        const user = req.user
+        const { parentFolder, folder } = req.body
+        const groupId = req.params.groupId
+        if (!files) {
+            return res.status(400).json({
+                message: "file not found"
+            })
+        }
+
+        const result = await Promise.all(
+            files.map(ele => (imageKit.uploadFile(ele)))
+        )
+
+
+        const myImages = result.map(ele => ({ url: ele.url, fileId: ele.fileId, name: ele.name }))
+
+
+        const group = await groupModel.findById(groupId)
+        console.log(group);
+        console.log(groupId);
+        if (!group) {
+            return res.status(404).json({
+                message: "Group not found"
+            })
+        }
+        const data01 = await grpImageModel.find({ group: group._id, parentFolder: parentFolder, folder: folder })
+
+        const oldImages = data01.flatMap(ele => ele.images)
+        const combinedImages = [...myImages, ...oldImages]
+        const data = await grpImageModel.findOneAndUpdate({ group: group._id, parentFolder: parentFolder, folder: folder }, {
+            images: combinedImages
+        }, {
+            upsert: true, returnDocument: "after",
+        })
+        console.log(group._id);
+        return res.status(201).json({
+            message: "File uploaded successfully"
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
 }
