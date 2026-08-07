@@ -72,3 +72,32 @@ export async function addMember(req, res) {
         })
     }
 }
+
+export async function invitation(req, res) {
+    try {
+        const user = req.user
+
+        const myInvitation = await inviteMember
+            .findOne({ receiver: user._id })
+            .populate("sender", "username")
+            .populate("group", "name")
+
+        if (!myInvitation) {
+            return res.status(404).json({
+                message: "Invitation not found or has expired"
+            })
+        }
+
+        return res.status(200).json({
+            message: `You are invited to join group`,
+            group: myInvitation.group.name,
+            invitedBy: myInvitation.sender.username
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}

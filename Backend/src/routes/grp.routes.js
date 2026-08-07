@@ -6,5 +6,6 @@ const grpRouter = Router()
 
 grpRouter.post("/createGroup",authMiddleware.validateUserAccessToken,grpControllers.createGroup)
 grpRouter.post("/:groupId/addMember",authMiddleware.validateUserAccessToken,grpControllers.addMember)
+grpRouter.post("/invitation",authMiddleware.validateUserAccessToken,grpControllers.invitation)
 
 export default grpRouter

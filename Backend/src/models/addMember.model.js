@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 const invitationSchema = new mongoose.Schema({
     sender: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Users",
         required: true,
     },
     receiver: {
@@ -13,7 +13,7 @@ const invitationSchema = new mongoose.Schema({
     },
     group: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Group",
+        ref: "Groups",
         required: true,
     },
     expiresAt: {
