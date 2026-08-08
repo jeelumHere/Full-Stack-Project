@@ -57,7 +57,7 @@ export async function addMember(req, res) {
             })
         }
 
-        const group = await groupModel.findOne({ _id: groupId, 'members.user':user._id})
+        const group = await groupModel.findOne({ _id: groupId, 'members.user': user._id })
         if (!group) {
             return res.status(404).json({ message: "Group does not exist" })
         }
@@ -252,47 +252,121 @@ export async function uploadImages(req, res) {
     }
 }
 
+// export async function deleteImages(req, res) {
+//     try {
+
+//         const user = req.user
+
+//         const { folder, parentFolder } = req.body
+//         const fileIds = JSON.parse(req.body.fileIds);
+//         const groupId = req.params.groupId
+
+//         const imageData = await grpImageModel.find(
+//             { group: group._id, parentFolder: parentFolder, folder: folder }
+//         )
+
+//         console.log("imageData " + imageData);
+
+//         const updatedImages = imageData.flatMap(ele => (ele.images.filter(
+//             image => !fileIds.includes(image.fileId)
+//         )))
+
+//         console.log("updatedImages " + updatedImages);
+
+//         const newImageData = await grpImageModel.findOneAndUpdate(
+//             { group: group._id, parentFolder: parentFolder, folder: folder },
+//             { images: updatedImages },
+//             { upsert: true, returnDocument: "after", }
+//         )
+
+//         if (updatedImages.length === 0) {
+//             await imageModel.deleteMany({ group: group._id, parentFolder: parentFolder, folder: folder })
+//         }
+
+//         const result = await imageKit.deleteFile(fileIds)
+
+//         return res.status(200).json({
+//             message: "Files deleted Successfully",
+//         })
+//     }
+//     catch (err) {
+//         return res.status(500).json({
+//             error: "Server Error",
+//             message: err.message
+//         })
+//     }
+// }
+
 export async function deleteImages(req, res) {
     try {
+        const user = req.user;
+        const { folder, parentFolder } = req.body;
+        const { groupId } = req.params;
 
-        const user = req.user
-
-        const { folder, parentFolder } = req.body
-        const fileIds = JSON.parse(req.body.fileIds);
-        const groupId = req.params.groupId
-
-        const imageData = await grpImageModel.find(
-            { group: group._id, parentFolder: parentFolder, folder: folder }
-        )
-
-        console.log("imageData " + imageData);
-
-        const updatedImages = imageData.flatMap(ele => (ele.images.filter(
-            image => !fileIds.includes(image.fileId)
-        )))
-
-        console.log("updatedImages " + updatedImages);
-
-        const newImageData = await grpImageModel.findOneAndUpdate(
-            { group: group._id, parentFolder: parentFolder, folder: folder },
-            { images: updatedImages },
-            { upsert: true, returnDocument: "after", }
-        )
-
-        if (updatedImages.length === 0) {
-            await imageModel.deleteMany({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
+        if (!parentFolder || !folder) {
+            return res.status(400).json({ message: "parentFolder and folder are required" });
         }
 
-        const result = await imageKit.deleteFile(fileIds)
+        let fileIds;
+        try {
+            fileIds = JSON.parse(req.body.fileIds);
+        } catch {
+            return res.status(400).json({ message: "Invalid fileIds format" });
+        }
+
+        if (!Array.isArray(fileIds) || fileIds.length === 0) {
+            return res.status(400).json({ message: "fileIds must be a non-empty array" });
+        }
+
+        // 1. Verify group exists AND user is a member
+        const validGroup = await groupModel.findOne({
+            _id: groupId,
+            'members.user': user._id
+        });
+
+        if (!validGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+        const groupDoc = await grpImageModel.findOne(
+            { group: validGroup._id, parentFolder, folder },
+            { images: 1 } // only fetch the images field
+        );
+
+        const matchedFileIds = groupDoc.images
+            .filter(img => fileIds.includes(img.fileId) && String(img.user) === String(user._id))
+            .map(img => img.fileId);
+
+        console.log(matchedFileIds);
+        // 2. Delete from ImageKit first — don't leave DB/storage out of sync if this fails
+        // await imageKit.deleteFile(matchedFileIds);
+
+        // 3. Atomic pull — no race condition, no read-modify-write
+        const newImageData = await grpImageModel.findOneAndUpdate(
+            { group: validGroup._id, parentFolder, folder },
+            { $pull: { images: { fileId: { $in: fileIds }, user: user._id } } },// only pull images that ALSO belong to this user
+            { new: true }
+        );
+
+        if (!newImageData) {
+            return res.status(404).json({ message: "Folder not found" });
+        }
+
+        // 4. Clean up the folder doc if it's now empty
+        if (newImageData.images.length === 0) {
+            await grpImageModel.deleteOne({ _id: newImageData._id });
+        }
 
         return res.status(200).json({
-            message: "Files deleted Successfully",
-        })
-    }
-    catch (err) {
+            message: "Files deleted successfully"
+        });
+
+    } catch (err) {
+        console.error("deleteImages error:", err);
         return res.status(500).json({
             error: "Server Error",
-            message: err.message
-        })
+            message: "Something went wrong while deleting files"
+        });
     }
 }
