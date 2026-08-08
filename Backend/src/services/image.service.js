@@ -6,11 +6,12 @@ const imagekit01 = new imageKit({
     privateKey : config.privateKey,
 });
 
-export async function uploadFile(file) {
+export async function uploadFile(file,user) {
     const result = await imagekit01.files.upload({
         file: file.buffer.toString("base64"),
         fileName : file.originalname,
-        folder : "/app-images"
+        folder : `/app-images/${user.username}`,
+        useUniqueFileName: true
     });
 
     return result;

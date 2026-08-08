@@ -208,7 +208,7 @@ export async function uploadImages(req, res) {
 
         // 2. Parallel upload — don't let one failure kill the whole batch
         const uploadResults = await Promise.allSettled(
-            files.map(file => imageKit.uploadFile(file))
+            files.map(file => imageKit.uploadFile(file,user))
         );
 
         const succeeded = uploadResults
@@ -233,7 +233,7 @@ export async function uploadImages(req, res) {
         const updatedData = await grpImageModel.findOneAndUpdate(
             { group: validGroup._id, parentFolder, folder },
             { $push: { images: { $each: newImages } } },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         return res.status(201).json({
