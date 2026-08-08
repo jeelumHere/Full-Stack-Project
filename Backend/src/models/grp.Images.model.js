@@ -1,14 +1,9 @@
 import mongoose from "mongoose"
 
 const grpImageSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Users", // match your actual model name exactly
-        required: true,
-        index: true
-    },
     images: [
         {
+            user: { type: mongoose.Schema.Types.ObjectId, ref: "Users", required: true, index: true }, // match your actual model name exactly
             url: { type: String, required: true },
             fileId: { type: String, required: true },
             name: { type: String, required: true }

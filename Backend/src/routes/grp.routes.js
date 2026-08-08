@@ -10,5 +10,6 @@ grpRouter.post("/invitation",authMiddleware.validateUserAccessToken,grpControlle
 grpRouter.post("/acceptInvitation",authMiddleware.validateUserAccessToken,grpControllers.acceptInvitation)
 grpRouter.get("/myGroups",authMiddleware.validateUserAccessToken,grpControllers.myGroups)
 grpRouter.post("/:groupId/uploadImages",authMiddleware.validateUserAccessToken,grpControllers.uploadImages)
+grpRouter.delete("/:groupId/deleteImages",authMiddleware.validateUserAccessToken,grpControllers.deleteImages)
 
 export default grpRouter
