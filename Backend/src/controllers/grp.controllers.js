@@ -252,51 +252,6 @@ export async function uploadImages(req, res) {
     }
 }
 
-// export async function deleteImages(req, res) {
-//     try {
-
-//         const user = req.user
-
-//         const { folder, parentFolder } = req.body
-//         const fileIds = JSON.parse(req.body.fileIds);
-//         const groupId = req.params.groupId
-
-//         const imageData = await grpImageModel.find(
-//             { group: group._id, parentFolder: parentFolder, folder: folder }
-//         )
-
-//         console.log("imageData " + imageData);
-
-//         const updatedImages = imageData.flatMap(ele => (ele.images.filter(
-//             image => !fileIds.includes(image.fileId)
-//         )))
-
-//         console.log("updatedImages " + updatedImages);
-
-//         const newImageData = await grpImageModel.findOneAndUpdate(
-//             { group: group._id, parentFolder: parentFolder, folder: folder },
-//             { images: updatedImages },
-//             { upsert: true, returnDocument: "after", }
-//         )
-
-//         if (updatedImages.length === 0) {
-//             await imageModel.deleteMany({ group: group._id, parentFolder: parentFolder, folder: folder })
-//         }
-
-//         const result = await imageKit.deleteFile(fileIds)
-
-//         return res.status(200).json({
-//             message: "Files deleted Successfully",
-//         })
-//     }
-//     catch (err) {
-//         return res.status(500).json({
-//             error: "Server Error",
-//             message: err.message
-//         })
-//     }
-// }
-
 export async function deleteImages(req, res) {
     try {
         const user = req.user;
@@ -340,13 +295,13 @@ export async function deleteImages(req, res) {
 
         console.log(matchedFileIds);
         // 2. Delete from ImageKit first — don't leave DB/storage out of sync if this fails
-        // await imageKit.deleteFile(matchedFileIds);
+        await imageKit.deleteFile(matchedFileIds);
 
         // 3. Atomic pull — no race condition, no read-modify-write
         const newImageData = await grpImageModel.findOneAndUpdate(
             { group: validGroup._id, parentFolder, folder },
             { $pull: { images: { fileId: { $in: fileIds }, user: user._id } } },// only pull images that ALSO belong to this user
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!newImageData) {
