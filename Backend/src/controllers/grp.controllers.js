@@ -120,7 +120,7 @@ export async function invitation(req, res) {
 export async function acceptInvitation(req, res) {
     try {
         const user = req.user
-        const { groupId } = req.body
+        const groupId = req.body.groupId
 
         const isValidInvite = await inviteModel.findOne({ receiver: user._id, group: groupId })
         if (!isValidInvite) {
@@ -184,7 +184,7 @@ export async function uploadImages(req, res) {
         const files = req.files;
         const user = req.user;
         const { parentFolder, folder } = req.body;
-        const { groupId } = req.params;
+        const groupId = req.params.groupId;
 
         if (!files || files.length === 0) {
             return res.status(400).json({ message: "File not found" });
@@ -208,7 +208,7 @@ export async function uploadImages(req, res) {
 
         // 2. Parallel upload — don't let one failure kill the whole batch
         const uploadResults = await Promise.allSettled(
-            files.map(file => imageKit.uploadFile(file,user))
+            files.map(file => imageKit.uploadFile(file, user))
         );
 
         const succeeded = uploadResults
@@ -289,6 +289,12 @@ export async function deleteImages(req, res) {
             { images: 1 } // only fetch the images field
         );
 
+        if (!groupDoc) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+
         const matchedFileIds = groupDoc.images
             .filter(img => fileIds.includes(img.fileId) && String(img.user) === String(user._id))
             .map(img => img.fileId);
@@ -322,6 +328,48 @@ export async function deleteImages(req, res) {
         return res.status(500).json({
             error: "Server Error",
             message: "Something went wrong while deleting files"
+        });
+    }
+}
+
+export async function leaveGroup(req, res) {
+    try {
+        const user = req.user;
+        const groupId = req.params.groupId;
+
+        const updatedGroup = await groupModel.findOneAndUpdate(
+            { _id: groupId, 'members.user': user._id },
+            { $pull: { members: { user: user._id } } },
+            { returnDocument: 'after' }
+        );
+
+        if (!updatedGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+
+        if (updatedGroup.members.length === 0) {
+            const groupData = await grpImageModel.find({ group: groupId });
+
+            const fileIds = groupData.flatMap(ele => ele.images.map(e => e.fileId));
+
+            if (fileIds.length > 0) {
+                await imageKit.deleteFile(fileIds);
+            }
+
+            await grpImageModel.deleteMany({ group: groupId });
+            await groupModel.findByIdAndDelete(groupId);
+        }
+
+        return res.status(200).json({
+            message: `You left the group ${updatedGroup.name}`
+        });
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
         });
     }
 }
