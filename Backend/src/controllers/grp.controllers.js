@@ -373,3 +373,42 @@ export async function leaveGroup(req, res) {
         });
     }
 }
+
+export async function removeMember(req, res) {
+
+    try {
+        const user = req.user
+        const memberId = req.params.memberId;
+        const groupId = req.params.groupId
+
+        if(user._id==memberId){
+            return res.status(401).json({
+                message : "You cannot remove yourself"
+            })
+        }
+
+        const updatedGroup = await groupModel.findOneAndUpdate(
+            { _id: groupId, 'members.user': user._id },
+            { $pull: { members: { user: memberId } } },
+            { returnDocument: 'after' }
+        );
+
+        if (!updatedGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+        if (updatedGroup.admin !== user._id) {
+            return res.status(403).json({
+                message: "You are not authorized to remove any member"
+            })
+        }
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: 'Server Error',
+            message: err.message
+        })
+    }
+
+}
