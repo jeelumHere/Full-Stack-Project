@@ -22,7 +22,7 @@ grpRouter.get("/", authMiddleware.validateUserAccessToken, grpControllers.myGrou
 grpRouter.post("/:groupId/images", authMiddleware.validateUserAccessToken, grpControllers.uploadImages)
 grpRouter.delete("/:groupId/images", authMiddleware.validateUserAccessToken, grpControllers.deleteImages)
 grpRouter.delete("/:groupId/members/me", authMiddleware.validateUserAccessToken, grpControllers.leaveGroup)
-grpRouter.delete("/:groupId/members/:membersId", authMiddleware.validateUserAccessToken, grpControllers.removeMember)
+grpRouter.delete("/:groupId/members/:memberId", authMiddleware.validateUserAccessToken, grpControllers.removeMember)
 
 
 export default grpRouter

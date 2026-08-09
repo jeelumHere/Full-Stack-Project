@@ -375,40 +375,41 @@ export async function leaveGroup(req, res) {
 }
 
 export async function removeMember(req, res) {
-
     try {
-        const user = req.user
+        const user = req.user;
         const memberId = req.params.memberId;
-        const groupId = req.params.groupId
+        const groupId = req.params.groupId;
 
-        if(user._id==memberId){
-            return res.status(401).json({
-                message : "You cannot remove yourself"
-            })
-        }
-
-        const updatedGroup = await groupModel.findOneAndUpdate(
-            { _id: groupId, 'members.user': user._id },
-            { $pull: { members: { user: memberId } } },
-            { returnDocument: 'after' }
-        );
-
-        if (!updatedGroup) {
-            return res.status(403).json({
-                message: "Group not found or you are not an authorized member"
+        if (user._id.toString() === memberId) {
+            return res.status(400).json({
+                message: "You cannot remove yourself"
             });
         }
-        if (updatedGroup.admin !== user._id) {
+
+        // Check admin status BEFORE mutating anything
+        const group = await groupModel.findOne({ _id: groupId, 'members.user': memberId });
+
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
+        }
+
+        if (!group.admin.equals(user._id)) {
             return res.status(403).json({
                 message: "You are not authorized to remove any member"
-            })
+            });
         }
+
+        await groupModel.updateOne(
+            { _id: groupId },
+            { $pull: { members: { user: memberId } } }
+        );
+
+        return res.status(200).json({ message: "Member removed successfully" });
     }
     catch (err) {
         return res.status(500).json({
-            error: 'Server Error',
+            error: "Server Error",
             message: err.message
-        })
+        });
     }
-
 }
