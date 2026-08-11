@@ -1,7 +1,7 @@
 import * as imageKit from "../services/image.service.js"
 import imageModel from "../models/image.model.js"
 import userModel from "../models/user.model.js"
-import { json } from "express"
+// import { json } from "express"
 
 
 export async function uploadImages(req, res) {
@@ -9,31 +9,26 @@ export async function uploadImages(req, res) {
         const files = req.files
         const user = req.user
         const { parentFolder, folder } = req.body
-        if (!files) {
+        if (!parentFolder || !folder || !req.files) {
             return res.status(400).json({
-                message: "file not found"
+                message: "Provide required credentials"
             })
         }
 
-        const result = await Promise.all(
-            files.map(ele => (imageKit.uploadFile(ele)))
-        )
 
+        const result = await Promise.all(
+            files.map(ele => (imageKit.uploadFile(ele,user)))
+        )
 
         const myImages = result.map(ele => ({ url: ele.url, fileId: ele.fileId, name: ele.name }))
 
 
-        const data01 = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder })
-
-        const oldImages = data01.flatMap(ele => ele.images)
-        const combinedImages = [...myImages, ...oldImages]
-        const data = await imageModel.findOneAndUpdate({ user: user._id, parentFolder: parentFolder, folder: folder }, {
-            images: combinedImages,
-        }, {
-            upsert: true, returnDocument: "after",
-        })
-
-
+        // 4. Atomic push — no race condition, no read-modify-write
+        const updatedData = await imageModel.findOneAndUpdate(
+            { user: user._id, parentFolder, folder },
+            { $push: { images: { $each: myImages } } },
+            { upsert: true, returnDocument: "after" }
+        );
 
         return res.status(201).json({
             message: "File uploaded successfully"
@@ -178,7 +173,7 @@ export async function getImages(req, res) {
         const user = req.user;
         const { parentFolder, folder } = req.body
 
-        const allImages = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility:"Private" })
+        const allImages = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
 
         let data = allImages
         const onlyImages = allImages.flatMap(ele => (ele.images))
@@ -320,17 +315,17 @@ export async function getPublicImages(req, res) {
             })
         }
 
-        const imagesData = await publicImages.flatMap(ele=>(ele.images))
+        const imagesData = await publicImages.flatMap(ele => (ele.images))
         return res.status(200).json({
             message: "Data fetched successfully",
             data: publicImages,
-            images:  imagesData
+            images: imagesData
         })
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            error : "Server Error",
-            message : err.message
+            error: "Server Error",
+            message: err.message
         })
     }
 }

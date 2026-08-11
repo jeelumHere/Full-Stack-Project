@@ -4,6 +4,7 @@ import morgan from "morgan"
 import authRouter from "./routes/auth.routes.js"
 import imgRouter from "./routes/img.routes.js"
 import grpRouter from "./routes/grp.routes.js"
+import fileRouter from "./routes/file.routes.js"
 import cookieParser from "cookie-parser"
 
 const upload = multer({storage: multer.memoryStorage()})
@@ -16,4 +17,5 @@ app.use(cookieParser())
 app.use("/api/auth",upload.none(),authRouter)
 app.use("/api/img",upload.array("image"),imgRouter)
 app.use("/api/grp",upload.array("image"),grpRouter)
+app.use("/api/file",fileRouter)
 export default app;
