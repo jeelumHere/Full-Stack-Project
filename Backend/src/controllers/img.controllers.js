@@ -1,6 +1,8 @@
 import * as imageKit from "../services/image.service.js"
+import * as fileService from "../services/file.service.js"
 import imageModel from "../models/image.model.js"
 import userModel from "../models/user.model.js"
+import fileModel from "../models/file.model.js"
 // import { json } from "express"
 
 
@@ -17,7 +19,7 @@ export async function uploadImages(req, res) {
 
 
         const result = await Promise.all(
-            files.map(ele => (imageKit.uploadFile(ele,user)))
+            files.map(ele => (imageKit.uploadFile(ele, user)))
         )
 
         const myImages = result.map(ele => ({ url: ele.url, fileId: ele.fileId, name: ele.name }))
@@ -47,20 +49,31 @@ export async function deleteFolder(req, res) {
         const user = req.user;
         const { parentFolder } = req.body
 
-        const data = await imageModel.find(
+        const imageData = await imageModel.find(
             { user: user._id, parentFolder: parentFolder }
         )
 
-        const fileIds = data.flatMap(ele =>
+        const fileIds = imageData.flatMap(ele =>
             ele.images.map(e => e.fileId)
         );
+        const fileData = await fileModel.find(
+            { user: user._id, parentFolder: parentFolder }
+        )
+
+        const publicIds = fileData.flatMap(ele =>
+            ele.files.map(e => e.publicId)
+        );
+
 
         const result = await imageKit.deleteFile(fileIds)
+        await fileService.deletePdfs(publicIds)
 
         await imageModel.deleteMany(
             { user: user._id, parentFolder: parentFolder }
         )
-
+        await fileModel.deleteMany(
+            { user: user._id, parentFolder: parentFolder }
+        )
 
 
 
@@ -81,18 +94,29 @@ export async function deleteSubFolder(req, res) {
         const user = req.user;
         const { folder, parentFolder } = req.body
 
-        const data = await imageModel.find(
+        const imageData = await imageModel.find(
             { user: user._id, parentFolder: parentFolder, folder: folder }
         )
 
-        const fileIds = data.flatMap(ele =>
+        const fileIds = imageData.flatMap(ele =>
             ele.images.map(e => e.fileId)
         );
-        console.log(fileIds);
+        const fileData = await fileModel.find(
+            { user: user._id, parentFolder: parentFolder, folder: folder }
+        )
+
+        const publicIds = fileData.flatMap(ele =>
+            ele.files.map(e => e.publicId)
+        );
+
 
         const result = await imageKit.deleteFile(fileIds)
+        await fileService.deletePdfs(publicIds)
 
         await imageModel.deleteMany(
+            { user: user._id, parentFolder: parentFolder, folder: folder }
+        )
+        await fileModel.deleteMany(
             { user: user._id, parentFolder: parentFolder, folder: folder }
         )
 
