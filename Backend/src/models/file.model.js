@@ -10,7 +10,7 @@ const imageSchema = new mongoose.Schema({
   files: [
     {
       url: { type: String, required: true },
-      fileId: { type: String, required: true },
+      publicId: { type: String, required: true },
       name: { type: String, required: true },
       fileSize: { type: Number },
       folder: { type: String }

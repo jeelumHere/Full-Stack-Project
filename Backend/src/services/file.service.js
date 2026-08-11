@@ -18,6 +18,7 @@ export const uploadFile = (buffer, filename, folder = user) => {
     })
 }
 
+
 export const deletePdfs = async (publicIds) => {
-    return cloudinary.uploader.delete_resources(publicIds, { resource_type: 'raw' });
+    return cloudinary.api.delete_resources(publicIds, { resource_type: 'raw' });
 };

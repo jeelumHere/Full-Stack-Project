@@ -1,11 +1,13 @@
 import { Router } from 'express'
-import upload from "../middleware/file.middleware.js"
+import multerMiddleware from "../middleware/file.middleware.js"
 import * as authMiddleware from "../middleware/auth.middleware.js"
 import * as fileControllers from "../controllers/file.contollers.js"
+import multer from "multer"
+const upload = multer({ storage: multer.memoryStorage() })
 
 const fileRouter = Router()
 
-fileRouter.post("/", authMiddleware.validateUserAccessToken,upload.single("file"),fileControllers.uploadFile)
-fileRouter.delete("/", authMiddleware.validateUserAccessToken,fileControllers.deleteFiles)
+fileRouter.post("/", authMiddleware.validateUserAccessToken, multerMiddleware.single("file"), fileControllers.uploadFile)
+fileRouter.delete("/", authMiddleware.validateUserAccessToken, upload.none(), fileControllers.deleteFiles)
 
 export default fileRouter
