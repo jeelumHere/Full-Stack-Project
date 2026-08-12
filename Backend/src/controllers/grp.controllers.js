@@ -262,12 +262,9 @@ export async function deleteImages(req, res) {
             return res.status(400).json({ message: "parentFolder and folder are required" });
         }
 
-        let fileIds;
-        try {
-            fileIds = JSON.parse(req.body.fileIds);
-        } catch {
-            return res.status(400).json({ message: "Invalid fileIds format" });
-        }
+        const fileIds = typeof req.body.fileIds === 'string'
+            ? JSON.parse(req.body.fileIds)
+            : req.body.fileIds;
 
         if (!Array.isArray(fileIds) || fileIds.length === 0) {
             return res.status(400).json({ message: "fileIds must be a non-empty array" });

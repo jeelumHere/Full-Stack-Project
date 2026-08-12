@@ -42,7 +42,10 @@ export async function deleteFiles(req, res) {
         const user = req.user
 
         const { parentFolder, folder } = req.body
-        const publicIds = JSON.parse(req.body.publicIds);
+
+        const publicIds = typeof req.body.publicIds === 'string'
+            ? JSON.parse(req.body.publicIds)
+            : req.body.publicIds;
 
         if (!parentFolder || !folder || publicIds.length === 0) {
             return res.status(400).json({
@@ -54,31 +57,31 @@ export async function deleteFiles(req, res) {
         const fileData01 = await fileModel.find(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" }
         )
-        if(fileData01.length===0){
+        if (fileData01.length === 0) {
             return res.status(403).json({
-                message : "Data not found in the database"
+                message: "Data not found in the database"
             })
         }
-        
+
         const fileData02 = await fileModel.find(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" }
         )
-        
+
         const updatedFiles01 = fileData01.flatMap(ele => (ele.files.filter(
             file => !publicIds.includes(file.publicId)
         )))
-        
-        
+
+
         const updatedFiles02 = fileData02.flatMap(ele => (ele.files.filter(
             file => !publicIds.includes(file.publicId)
         )))
-        
+
         const newFilesData01 = await fileModel.findOneAndUpdate(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" },
             { files: updatedFiles01 },
             { upsert: true, returnDocument: "after", }
         )
-    
+
 
         const newFilesData02 = await fileModel.findOneAndUpdate(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" },
@@ -114,6 +117,77 @@ export async function deleteFiles(req, res) {
         return res.status(500).json({
             error: "Server Error",
             message: err.message
+        })
+    }
+}
+
+export async function getFiles(req, res) {
+    try {
+        const user = req.user;
+        const { parentFolder, folder } = req.body
+
+        if (!parentFolder || !folder) {
+            return res.status(400).json({
+                message: "Provide required credentials"
+            })
+        }
+
+        const allFiles = await fileModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
+
+        if (allFiles.length === 0) {
+            return res.status(400).json({
+                message: "No Data Found"
+            })
+        }
+        let data = allFiles
+        const onlyPdf = allFiles.flatMap(ele => (ele.files))
+
+        console.log(onlyImages);
+
+        return res.status(200).json({
+            message: "Data received successfully",
+            Data: data,
+            Files: onlyPdf
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message,
+        })
+    }
+}
+
+export async function uploadPublicFiles(req, res) {
+
+    try {
+        const user = req.user
+        const { parentFolder, folder } = req.body
+
+        const publicIds = typeof req.body.publicIds === 'string'
+            ? JSON.parse(req.body.publicIds)
+            : req.body.publicIds;
+
+        const myFiles = await fileModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
+
+        const publicFiles = myFiles.flatMap(ele => (ele.files.filter(
+            file => publicIds.includes(file.publicId)
+        )))
+
+        await fileModel.findOneAndUpdate(
+            { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" },
+            { $push:{files:{$each:myFiles}}  },
+            { upsert: true, returnDocument: "after" }
+        )
+
+        return res.status(201).json({
+            message: "Files are made public"
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            message: "Server Error",
+            error: err.message
         })
     }
 }

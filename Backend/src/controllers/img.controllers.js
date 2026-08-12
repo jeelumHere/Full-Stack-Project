@@ -138,7 +138,9 @@ export async function deleteImages(req, res) {
         const user = req.user
 
         const { folder, parentFolder } = req.body
-        const fileIds = JSON.parse(req.body.fileIds);
+        const fileIds = typeof req.body.fileIds === 'string'
+            ? JSON.parse(req.body.fileIds)
+            : req.body.fileIds;
 
         const imageData01 = await imageModel.find(
             { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" }
@@ -197,8 +199,19 @@ export async function getImages(req, res) {
         const user = req.user;
         const { parentFolder, folder } = req.body
 
+        if (!parentFolder || !folder) {
+            return res.status(400).json({
+                message: "Provide required credentials"
+            })
+        }
+
         const allImages = await imageModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
 
+        if (allImages.length === 0) {
+            return res.status(400).json({
+                message: "No Data Found"
+            })
+        }
         let data = allImages
         const onlyImages = allImages.flatMap(ele => (ele.images))
 
@@ -251,7 +264,7 @@ export async function uploadPublicImages(req, res) {
                 folder,
             },
             { images: combinedImages },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         return res.status(201).json({
@@ -273,7 +286,10 @@ export async function deletePublicImages(req, res) {
     try {
         const user = req.user
         const { parentFolder, folder } = req.body
-        const fileIds = JSON.parse(req.body.fileIds)
+
+        const fileIds = typeof req.body.fileIds === 'string'
+            ? JSON.parse(req.body.fileIds)
+            : req.body.fileIds;
 
         if (!parentFolder || !folder || !Array.isArray(fileIds) || fileIds.length === 0) {
             return res.status(400).json({

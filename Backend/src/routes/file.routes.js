@@ -9,5 +9,6 @@ const fileRouter = Router()
 
 fileRouter.post("/", authMiddleware.validateUserAccessToken, multerMiddleware.single("file"), fileControllers.uploadFile)
 fileRouter.delete("/", authMiddleware.validateUserAccessToken, upload.none(), fileControllers.deleteFiles)
+fileRouter.get("/", authMiddleware.validateUserAccessToken, fileControllers.getFiles)
 
 export default fileRouter
