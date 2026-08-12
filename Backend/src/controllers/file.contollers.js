@@ -142,7 +142,6 @@ export async function getFiles(req, res) {
         let data = allFiles
         const onlyPdf = allFiles.flatMap(ele => (ele.files))
 
-        console.log(onlyImages);
 
         return res.status(200).json({
             message: "Data received successfully",
@@ -226,7 +225,7 @@ export async function deletePublicFiles(req, res) {
 
         if (!data || data.length === 0) {
             return res.status(401).json({
-                message: "No images are found"
+                message: "No Files are found"
             })
         }
 
@@ -261,7 +260,7 @@ export async function deletePublicFiles(req, res) {
 
 export async function getPublicFiles(req, res) {
     try {
-        
+
         const { parentFolder, folder } = req.body
 
         if (!parentFolder || !folder) {
@@ -276,7 +275,7 @@ export async function getPublicFiles(req, res) {
 
         if (publicFiles.length === 0) {
             return res.status(200).json({
-                message: "No images present"
+                message: "No Files present"
             })
         }
 
