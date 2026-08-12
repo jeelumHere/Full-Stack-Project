@@ -168,16 +168,31 @@ export async function uploadPublicFiles(req, res) {
             ? JSON.parse(req.body.publicIds)
             : req.body.publicIds;
 
-        const myFiles = await fileModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Private" })
+        if (!publicIds || publicIds.length === 0) {
+            return res.status(400).json({ message: "No file IDs provided" });
+        }
 
-        const publicFiles = myFiles.flatMap(ele => (ele.files.filter(
-            file => publicIds.includes(file.publicId)
-        )))
+        // Get the private files that match the requested publicIds
+        const myFiles = await fileModel.find({ user: user._id, parentFolder, folder, visibility: "Private" })
+
+        const newPublicFiles = myFiles.flatMap(ele => (
+            ele.files.filter(file => publicIds.includes(file.publicId))
+        ))
+
+        // Get existing public doc (if any) so we can append instead of overwrite
+        const existingPublicDoc = await fileModel.findOne({ user: user._id, parentFolder, folder, visibility: "Public" })
+        const existingFiles = existingPublicDoc?.files || []
+
+        // Merge and dedupe by publicId (new files win if there's ever a clash)
+        const mergedMap = new Map()
+        existingFiles.forEach(file => mergedMap.set(file.publicId, file))
+        newPublicFiles.forEach(file => mergedMap.set(file.publicId, file))
+        const mergedFiles = Array.from(mergedMap.values())
 
         await fileModel.findOneAndUpdate(
-            { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" },
-            { $push:{files:{$each:myFiles}}  },
-            { upsert: true, returnDocument: "after" }
+            { user: user._id, parentFolder, folder, visibility: "Public" },
+            { $set: { files: mergedFiles } },
+            { upsert: true }
         )
 
         return res.status(201).json({
@@ -188,6 +203,94 @@ export async function uploadPublicFiles(req, res) {
         return res.status(500).json({
             message: "Server Error",
             error: err.message
+        })
+    }
+}
+
+export async function deletePublicFiles(req, res) {
+    try {
+        const user = req.user
+        const { parentFolder, folder } = req.body
+
+        const publicIds = typeof req.body.publicIds === 'string'
+            ? JSON.parse(req.body.publicIds)
+            : req.body.publicIds;
+
+        if (!parentFolder || !folder || !Array.isArray(publicIds) || publicIds.length === 0) {
+            return res.status(400).json({
+                message: "Provide required credentials"
+            })
+        }
+
+        const data = await fileModel.find({ user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" })
+
+        if (!data || data.length === 0) {
+            return res.status(401).json({
+                message: "No images are found"
+            })
+        }
+
+        const updatedFiles = data.flatMap(ele =>
+            ele.files.filter(image => !publicIds.includes(image.publicId.toString()))
+        )
+
+        if (updatedFiles.length === 0) {
+            await fileModel.findOneAndDelete(
+                { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" }
+            )
+        } else {
+            await fileModel.findOneAndUpdate(
+                { user: user._id, parentFolder: parentFolder, folder: folder, visibility: "Public" },
+                { files: updatedFiles },
+                { new: true }
+            )
+        }
+
+        return res.status(200).json({
+            message: "Public Data deleted successfully"
+        })
+
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
+        })
+    }
+}
+
+export async function getPublicFiles(req, res) {
+    try {
+        
+        const { parentFolder, folder } = req.body
+
+        if (!parentFolder || !folder) {
+            return res.status(400).json({
+                message: "Provide required credentials"
+            })
+        }
+
+        const publicFiles = await fileModel.find(
+            { parentFolder: parentFolder, folder: folder, visibility: "Public" }
+        )
+
+        if (publicFiles.length === 0) {
+            return res.status(200).json({
+                message: "No images present"
+            })
+        }
+
+        const filesData = publicFiles.flatMap(ele => (ele.files))
+        return res.status(200).json({
+            message: "Data fetched successfully",
+            data: publicFiles,
+            Files: filesData
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: "Server Error",
+            message: err.message
         })
     }
 }
