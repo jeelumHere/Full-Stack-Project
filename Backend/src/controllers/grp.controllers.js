@@ -109,7 +109,8 @@ export async function invitation(req, res) {
             message: `You are invited to join group`,
             group: myInvitation.group.name,
             groupId: myInvitation.group._id,
-            invitedBy: myInvitation.sender.username
+            invitedBy: myInvitation.sender.username,
+            invitationId : myInvitation._id
         })
     }
     catch (err) {
@@ -442,6 +443,7 @@ export async function uploadFiles(req, res) {
         const result = await fileService.uploadFile(req.file.buffer, req.file.originalname, user.username)
 
         const newFile = [{
+            user:user._id,
             url: result.secure_url,
             publicId: result.public_id,
             name: result.display_name,
@@ -451,7 +453,7 @@ export async function uploadFiles(req, res) {
 
         // 2. Atomic push — no race condition, no read-modify-write
         const updatedData = await grpFilesModel.findOneAndUpdate(
-            { user: user._id, parentFolder, folder },
+            { group: groupId, parentFolder, folder },
             { $push: { files: { $each: newFile } } },
             { upsert: true, returnDocument: "after" }
         );
@@ -465,7 +467,7 @@ export async function uploadFiles(req, res) {
         console.error("uploadImages error:", err);
         return res.status(500).json({
             error: "Server Error",
-            message: "Something went wrong while uploading files"
+            message: err.message
         });
     }
 }
@@ -473,7 +475,7 @@ export async function uploadFiles(req, res) {
 export async function deleteFiles(req, res) {
     try {
         const user = req.user;
-        const { folder, parentFolder } = req.body;
+        const { folder, parentFolder } = req.params;
         const { groupId } = req.params;
 
         if (!parentFolder || !folder) {
@@ -512,8 +514,9 @@ export async function deleteFiles(req, res) {
         // Only allow deleting files the user actually owns
         const matchedPublicIds = groupDoc.files
             .filter(file => publicIds.includes(file.publicId) && String(file.user) === String(user._id))
-            .map(file => file.publicId);
+            .map(e => e.publicId);
 
+            console.log(matchedPublicIds);
         if (matchedPublicIds.length === 0) {
             return res.status(403).json({ message: "No matching files found for this user" });
         }
@@ -545,11 +548,10 @@ export async function deleteFiles(req, res) {
         console.error("deleteFiles error:", err);
         return res.status(500).json({
             error: "Server Error",
-            message: "Something went wrong while deleting files"
+            message: err.message
         });
     }
 }
-
 
 export async function getGrpImages(req, res) {
     try {
@@ -602,7 +604,7 @@ export async function getGrpImages(req, res) {
 export async function getGrpFiles(req, res) {
     try {
         const user = req.user;
-        const { folder, parentFolder } = req.query; // or req.body, but be consistent
+        const { folder, parentFolder } = req.params; // or req.body, but be consistent
         const { groupId } = req.params;
 
         if (!parentFolder || !folder || typeof folder !== "string" || typeof parentFolder !== "string") {

@@ -16,6 +16,6 @@ app.use(cookieParser())
 
 app.use("/api/auth",upload.none(),authRouter)
 app.use("/api/img",upload.array("image"),imgRouter)
-app.use("/api/grp",upload.array("image"),grpRouter)
+app.use("/api/grp",grpRouter)
 app.use("/api/file",fileRouter)
 export default app;
