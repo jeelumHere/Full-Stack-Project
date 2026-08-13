@@ -40,8 +40,18 @@ if (!process.env.CLOUDINARY_API_SECRET) {
 if (!process.env.CLOUDINARY_CLOUD_NAME) {
     throw new Error("CLOUDINARY_CLOUD_NAME is not present in the environmental variables");
 }
-
-
+if (!process.env.B2_KEY_ID) {
+    throw new Error("B2_KEY_ID is not present in the environmental variables");
+}
+if (!process.env.B2_APPLICATION_KEY) {
+    throw new Error("B2_APPLICATION_KEY is not present in the environmental variables");
+}
+if (!process.env.B2_BUCKET_NAME) {
+    throw new Error("B2_BUCKET_NAME is not present in the environmental variables");
+}
+if (!process.env.B2_ENDPOINT) {
+    throw new Error("B2_ENDPOINT is not present in the environmental variables");
+}
 
 const config = {
     mongoUri: process.env.MONGO_URI,
@@ -55,7 +65,11 @@ const config = {
     publicKey: process.env.PUBLIC_KEY,
     cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
     cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
-    cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME
+    cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    b2KeyId: process.env.B2_KEY_ID,
+    b2ApplicationKey: process.env.B2_APPLICATION_KEY,
+    b2BucketName: process.env.B2_BUCKET_NAME,
+    b2Endpoint: process.env.B2_ENDPOINT
 }
 
 export default config
