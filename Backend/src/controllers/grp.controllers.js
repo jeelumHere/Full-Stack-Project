@@ -1,8 +1,11 @@
 import groupModel from "../models/group.model.js";
+import mongoose from "mongoose";
 import userModel from '../models/user.model.js'
 import inviteModel from '../models/addMember.model.js'
 import grpImageModel from "../models/grp.Images.model.js"
 import * as imageKit from "../services/image.service.js"
+import * as fileService from "../services/file.service.js"
+import grpFilesModel from "../models/grp.files.model.js"
 
 export async function createGroup(req, res) {
     try {
@@ -296,7 +299,6 @@ export async function deleteImages(req, res) {
             .filter(img => fileIds.includes(img.fileId) && String(img.user) === String(user._id))
             .map(img => img.fileId);
 
-        console.log(matchedFileIds);
         // 2. Delete from ImageKit first — don't leave DB/storage out of sync if this fails
         await imageKit.deleteFile(matchedFileIds);
 
@@ -321,7 +323,6 @@ export async function deleteImages(req, res) {
         });
 
     } catch (err) {
-        console.error("deleteImages error:", err);
         return res.status(500).json({
             error: "Server Error",
             message: "Something went wrong while deleting files"
@@ -407,6 +408,242 @@ export async function removeMember(req, res) {
         return res.status(500).json({
             error: "Server Error",
             message: err.message
+        });
+    }
+}
+
+export async function uploadFiles(req, res) {
+    try {
+        const file = req.file;
+        const user = req.user;
+        const { parentFolder, folder } = req.body;
+        const groupId = req.params.groupId;
+
+        if (!file) {
+            return res.status(400).json({ message: "File not found" });
+        }
+
+        if (!parentFolder || !folder) {
+            return res.status(400).json({ message: "parentFolder and folder are required" });
+        }
+
+        // 1. Single DB hit: verify group exists AND user is a member
+        const validGroup = await groupModel.findOne({
+            _id: groupId,
+            'members.user': user._id
+        });
+
+        if (!validGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+
+        const result = await fileService.uploadFile(req.file.buffer, req.file.originalname, user.username)
+
+        const newFile = [{
+            url: result.secure_url,
+            publicId: result.public_id,
+            name: result.display_name,
+            fileSize: result.bytes,
+            folder: result.asset_folder
+        }]
+
+        // 2. Atomic push — no race condition, no read-modify-write
+        const updatedData = await grpFilesModel.findOneAndUpdate(
+            { user: user._id, parentFolder, folder },
+            { $push: { files: { $each: newFile } } },
+            { upsert: true, returnDocument: "after" }
+        );
+
+        return res.status(201).json({
+            message: "Files uploaded successfully",
+            Data: updatedData
+        });
+
+    } catch (err) {
+        console.error("uploadImages error:", err);
+        return res.status(500).json({
+            error: "Server Error",
+            message: "Something went wrong while uploading files"
+        });
+    }
+}
+
+export async function deleteFiles(req, res) {
+    try {
+        const user = req.user;
+        const { folder, parentFolder } = req.body;
+        const { groupId } = req.params;
+
+        if (!parentFolder || !folder) {
+            return res.status(400).json({ message: "parentFolder and folder are required" });
+        }
+
+        const publicIds = typeof req.body.publicIds === 'string'
+            ? JSON.parse(req.body.publicIds)
+            : req.body.publicIds;
+
+        if (!Array.isArray(publicIds) || publicIds.length === 0) {
+            return res.status(400).json({ message: "publicIds must be a non-empty array" });
+        }
+
+        // 1. Verify group exists AND user is a member
+        const validGroup = await groupModel.findOne({
+            _id: groupId,
+            'members.user': user._id
+        });
+
+        if (!validGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+
+        const groupDoc = await grpFilesModel.findOne(
+            { group: validGroup._id, parentFolder, folder },
+            { files: 1 }
+        );
+
+        if (!groupDoc) {
+            return res.status(404).json({ message: "Folder not found" });
+        }
+
+        // Only allow deleting files the user actually owns
+        const matchedPublicIds = groupDoc.files
+            .filter(file => publicIds.includes(file.publicId) && String(file.user) === String(user._id))
+            .map(file => file.publicId);
+
+        if (matchedPublicIds.length === 0) {
+            return res.status(403).json({ message: "No matching files found for this user" });
+        }
+
+        // 2. Delete from Cloudinary first — don't leave DB/storage out of sync if this fails
+        await fileService.deletePdfs(matchedPublicIds);
+
+        // 3. Atomic pull — no race condition, no read-modify-write
+        const newFileData = await grpFilesModel.findOneAndUpdate(
+            { group: validGroup._id, parentFolder, folder },
+            { $pull: { files: { publicId: { $in: matchedPublicIds } } } },
+            { returnDocument: 'after' }
+        );
+
+        if (!newFileData) {
+            return res.status(404).json({ message: "Folder not found" });
+        }
+
+        // 4. Clean up the folder doc if it's now empty
+        if (newFileData.files.length === 0) {
+            await grpFilesModel.deleteOne({ _id: newFileData._id });
+        }
+
+        return res.status(200).json({
+            message: "Files deleted successfully"
+        });
+
+    } catch (err) {
+        console.error("deleteFiles error:", err);
+        return res.status(500).json({
+            error: "Server Error",
+            message: "Something went wrong while deleting files"
+        });
+    }
+}
+
+
+export async function getGrpImages(req, res) {
+    try {
+        const user = req.user;
+        const { folder, parentFolder } = req.query; // or req.body, but be consistent
+        const { groupId } = req.params;
+
+        if (!parentFolder || !folder || typeof folder !== "string" || typeof parentFolder !== "string") {
+            return res.status(400).json({ message: "parentFolder and folder are required strings" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: "Invalid groupId" });
+        }
+
+        const validGroup = await groupModel.findOne({
+            _id: groupId,
+            'members.user': user._id
+        });
+
+        if (!validGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+
+        const grpImagesData = await grpImageModel.find({
+            group: validGroup._id,
+            parentFolder,
+            folder
+        });
+
+        const onlyImages = grpImagesData.flatMap(ele => ele.images);
+        if (onlyImages.length === 0) {
+            return res.status(404).json({ message: "No Data Found" });
+        }
+
+        return res.status(200).json({
+            message: "Data fetched successfully",
+            data: grpImagesData,
+            images: onlyImages
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: "Server Error",
+            error: err.message
+        });
+    }
+}
+export async function getGrpFiles(req, res) {
+    try {
+        const user = req.user;
+        const { folder, parentFolder } = req.query; // or req.body, but be consistent
+        const { groupId } = req.params;
+
+        if (!parentFolder || !folder || typeof folder !== "string" || typeof parentFolder !== "string") {
+            return res.status(400).json({ message: "parentFolder and folder are required strings" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: "Invalid groupId" });
+        }
+
+        const validGroup = await groupModel.findOne({
+            _id: groupId,
+            'members.user': user._id
+        });
+
+        if (!validGroup) {
+            return res.status(403).json({
+                message: "Group not found or you are not an authorized member"
+            });
+        }
+
+        const grpFilesData = await grpFilesModel.find({
+            group: validGroup._id,
+            parentFolder,
+            folder
+        });
+
+        const onlyFiles = grpFilesData.flatMap(ele => ele.files);
+        if (onlyFiles.length === 0) {
+            return res.status(404).json({ message: "No Data Found" });
+        }
+
+        return res.status(200).json({
+            message: "Data fetched successfully",
+            data: grpFilesData,
+            files: onlyFiles
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: "Server Error",
+            error: err.message
         });
     }
 }

@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const imageSchema = new mongoose.Schema({
+const fileSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users", // match your actual model name exactly
@@ -37,6 +37,6 @@ const imageSchema = new mongoose.Schema({
   timestamps: true
 })
 
-const imageModel = mongoose.model("Files", imageSchema)
+const imageModel = mongoose.model("Files", fileSchema)
 
 export default imageModel

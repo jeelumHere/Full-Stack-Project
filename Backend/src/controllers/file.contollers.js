@@ -124,7 +124,7 @@ export async function deleteFiles(req, res) {
 export async function getFiles(req, res) {
     try {
         const user = req.user;
-        const { parentFolder, folder } = req.body
+        const { parentFolder, folder } = req.query
 
         if (!parentFolder || !folder) {
             return res.status(400).json({
@@ -261,7 +261,7 @@ export async function deletePublicFiles(req, res) {
 export async function getPublicFiles(req, res) {
     try {
 
-        const { parentFolder, folder } = req.body
+        const { parentFolder, folder } = req.query
 
         if (!parentFolder || !folder) {
             return res.status(400).json({

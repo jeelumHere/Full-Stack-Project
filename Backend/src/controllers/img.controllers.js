@@ -197,7 +197,7 @@ export async function deleteImages(req, res) {
 export async function getImages(req, res) {
     try {
         const user = req.user;
-        const { parentFolder, folder } = req.body
+        const { parentFolder, folder } = req.query
 
         if (!parentFolder || !folder) {
             return res.status(400).json({
@@ -337,7 +337,7 @@ export async function deletePublicImages(req, res) {
 export async function getPublicImages(req, res) {
     try {
         const user = req.user;
-        const { parentFolder, folder } = req.body
+        const { parentFolder, folder } = req.query
 
         if (!parentFolder || !folder) {
             return res.status(400).json({
