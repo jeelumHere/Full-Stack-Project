@@ -42,19 +42,43 @@ export async function getFileUrl(key) {
 }
 
   
-export async function deleteFromB2(keys) {
-  // keys = array of strings, e.g. ["169999-file1.docx", "170000-file2.pptx"]
-  if (!keys || keys.length === 0) return;
+// export async function deleteFromB2(keys) {
+//   // keys = array of strings, e.g. ["169999-file1.docx", "170000-file2.pptx"]
+//   if (!keys || keys.length === 0) return;
 
-  const command = new DeleteObjectsCommand({
-    Bucket: config.b2BucketName,
-    Delete: {
-      Objects: keys.map((key) => ({ Key: key })),
-    },
+//   const command = new DeleteObjectsCommand({
+//     Bucket: config.b2BucketName,
+//     Delete: {
+//       Objects: keys.map((key) => ({ Key: key })),
+//     },
+//   });
+
+//   const result = await s3Client.send(command);
+//   return result;
+// }
+
+
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+
+export async function deleteFromB2(keys) {
+  if (!keys || keys.length === 0) return [];
+
+  const deletePromises = keys.map(async (key) => {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: config.b2BucketName,
+        Key: key,
+      });
+
+      const response = await s3Client.send(command);
+      return { key, success: true, response };
+    } catch (error) {
+      console.error(`Failed to delete key: ${key}`, error);
+      return { key, success: false, error: error.message };
+    }
   });
 
-  const result = await s3Client.send(command);
-  return result;
+  // Executes everything simultaneously
+  const results = await Promise.all(deletePromises);
+  return results;
 }
-
-

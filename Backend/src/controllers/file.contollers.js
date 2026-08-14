@@ -106,6 +106,7 @@ export async function deleteFiles(req, res) {
             .map(([id]) => id);
 
         await officeService.deleteFromB2(publicIds)
+        console.log("it worked");
         if (cloudResult.partial || failed.length > 0) {
             return res.status(500).json({
                 message: 'Some files failed to delete from Cloudinary',
