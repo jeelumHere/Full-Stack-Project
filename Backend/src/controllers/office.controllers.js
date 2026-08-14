@@ -13,9 +13,9 @@ export async function uploadFile(req, res) {
                 message: "Provide required credentials"
             })
         }
-        console.log(req.file);
+
         const result = await officeService.uploadToB2(req.file, user)
-        console.log(result);
+
         const newFile = [{
             publicId: result,
             name: req.file.originalname,
@@ -31,15 +31,23 @@ export async function uploadFile(req, res) {
         );
 
 
-        return res.status(201).json({ message: "File uploaded successfully", })
+        return res.status(201).json({ message: "File uploaded successfully", file: newFile })
     } catch (err) {
         return res.status(500).json({ message: 'Server Error', error: err.message })
     }
 }
 export async function url(req, res) {
     try {
-        const url = await officeService.getFileUrl("user12345/1786655412260-Habib_Mobile_Centre_Letterhead.docx")
-        console.log(url);
+        const { key } = req.body
+        if (!key) {
+            return res.status(400).json({
+                message: "Url not found"
+            })
+        }
+        const url = await officeService.getFileUrl(key)
+        return res.status(200).json({
+            url: url
+        })
     }
     catch (err) {
         return res.status(500).json({ message: 'Server Error', error: err.message })

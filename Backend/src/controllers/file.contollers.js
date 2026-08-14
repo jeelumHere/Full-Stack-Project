@@ -1,5 +1,6 @@
 import * as fileService from "../services/file.service.js"
 import fileModel from "../models/file.model.js"
+import * as officeService from "../services/office.service.js"
 
 export async function uploadFile(req, res) {
     try {
@@ -104,6 +105,7 @@ export async function deleteFiles(req, res) {
             .filter(([_, status]) => status !== 'deleted')
             .map(([id]) => id);
 
+        await officeService.deleteFromB2(publicIds)
         if (cloudResult.partial || failed.length > 0) {
             return res.status(500).json({
                 message: 'Some files failed to delete from Cloudinary',
@@ -111,6 +113,7 @@ export async function deleteFiles(req, res) {
                 cloudResult
             });
         }
+
         return res.status(200).json({ message: 'PDFs deleted' });
     }
     catch (err) {
@@ -124,7 +127,7 @@ export async function deleteFiles(req, res) {
 export async function getFiles(req, res) {
     try {
         const user = req.user;
-        const { parentFolder, folder } = req.query
+        const { parentFolder, folder } = req.params
 
         if (!parentFolder || !folder) {
             return res.status(400).json({
