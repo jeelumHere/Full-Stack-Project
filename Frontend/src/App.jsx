@@ -2,8 +2,8 @@ import React from 'react'
 
 const App = () => {
   return (
-    <div>
-      I am <React></React>
+    <div className='text-textMuted bg-primary'>
+      I am ReactJS
     </div>
   )
 }

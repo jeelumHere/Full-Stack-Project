@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ==========================================================================
+   TAILWIND v4 THEME BRIDGE
+   Maps your custom CSS variables (defined below in :root) into Tailwind's
+   utility class system. This is what makes bg-surface, text-textMain,
+   rounded-md, shadow-md, gap-inline, p-card, text-h1 etc. work.
+   ========================================================================== */
+@theme {
+  /* Colors */
+  --color-main: var(--bg-main);
+  --color-surface: var(--bg-surface);
+  --color-element: var(--bg-element);
+  --color-textMain: var(--text-main);
+  --color-textMuted: var(--text-muted);
+  --color-border: var(--border-main);
+  --color-primary: var(--brand-primary);
+  --color-secondary: var(--brand-secondary);
+  --color-error: var(--err);
+  --color-success: var(--success);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm-val);
+  --radius-md: var(--radius-md-val);
+  --radius-lg: var(--radius-lg-val);
+  --radius-full: var(--radius-full-val);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm-val);
+  --shadow-md: var(--shadow-md-val);
+  --shadow-lg: var(--shadow-lg-val);
+
+  /* Spacing (gap-*, p-*, px-*, py-*, m-*) */
+  --spacing-xs: var(--space-xs);
+  --spacing-inline: var(--space-inline);
+  --spacing-card: var(--space-card);
+  --spacing-section: var(--space-section);
+
+  /* Font sizes (text-*) */
+  --text-xs: var(--font-xs);
+  --text-sm: var(--font-sm);
+  --text-base: var(--font-base);
+  --text-h3: var(--font-h3);
+  --text-h2: var(--font-h2);
+  --text-h1: var(--font-h1);
+
+  /* Font family */
+  --font-sans: var(--font-sans-val);
+}
+
+/* ==========================================================================
+   SYSTEM DESIGN TOKENS (actual values live here — @theme above just aliases)
+   ========================================================================== */
+:root {
+  /* Typography */
+  --font-sans-val: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: clamp(1rem, 0.4vw + 0.8rem, 1.125rem);
+  --font-h3: clamp(1.25rem, 1.5vw + 1rem, 1.75rem);
+  --font-h2: clamp(1.5rem, 2.5vw + 1rem, 2.25rem);
+  --font-h1: clamp(2rem, 4vw + 1rem, 3.5rem);
+
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.625;
+
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-inline: clamp(1rem, 1vw + 0.75rem, 1.5rem);
+  --space-card: clamp(1.25rem, 1.5vw + 1rem, 2.5rem);
+  --space-section: clamp(3rem, 6vw + 1rem, 7rem);
+
+  /* Radius */
+  --radius-sm-val: 6px;
+  --radius-md-val: 12px;
+  --radius-lg-val: 20px;
+  --radius-full-val: 9999px;
+
+  /* Shadows (Light) */
+  --shadow-sm-val: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md-val: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg-val: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+  /* Colors (Light) */
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-element: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-main: #cbd5e1;
+  --brand-primary: #3b82f6;
+  --brand-secondary: #10b981;
+  --err: #ef4444;
+  --success: #22c55e;
+
+  --focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.45);
+}
+
+/* --- DARK THEME --- */
+[data-theme='dark'] {
+  --shadow-sm-val: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md-val: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg-val: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+  --bg-main: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-element: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-main: #334155;
+  --brand-primary: #60a5fa;
+  --brand-secondary: #34d399;
+  --err: #f87171;
+  --success: #4ade80;
+
+  --focus-ring: 0 0 0 3px rgba(96, 165, 250, 0.5);
+}
+
+/* --- MIDNIGHT THEME --- */
+[data-theme='midnight'] {
+  --shadow-sm-val: none;
+  --shadow-md-val: none;
+  --shadow-lg-val: none;
+
+  --bg-main: #000000;
+  --bg-surface: #121212;
+  --bg-element: #262626;
+  --text-main: #ffffff;
+  --text-muted: #a3a3a3;
+  --border-main: #404040;
+  --brand-primary: #a855f7;
+  --brand-secondary: #f43f5e;
+  --err: #dc2626;
+  --success: #16a34a;
+
+  --focus-ring: 0 0 0 3px rgba(168, 85, 247, 0.6);
+}
+
+/* ==========================================================================
+   MODERN PRODUCTION RESET & ANCHORS
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-y: scroll;
+  text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans-val);
+  font-size: var(--font-base);
+  line-height: var(--leading-normal);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input, button, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+}
+
+img, svg, video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+h1, .text-h1 {
+  font-size: var(--font-h1);
+  line-height: var(--leading-tight);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: var(--space-xs);
+}
+
+h2, .text-h2 {
+  font-size: var(--font-h2);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+h3, .text-h3 {
+  font-size: var(--font-h3);
+  line-height: var(--leading-snug);
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+p {
+  margin-bottom: 1.25em;
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-main);
+  padding: var(--space-card);
+  border-radius: var(--radius-md-val);
+  box-shadow: var(--shadow-md-val);
+}
+
+.fluid-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 20vw, 400px), 1fr));
+  gap: var(--space-inline);
+}
+
+/* ==========================================================================
+   USER HARDWARE OVERRIDES
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  body {
+    background: transparent !important;
+    color: #000000 !important;
+    font-size: 12pt;
+  }
+  .no-print, nav, button, header {
+    display: none !important;
+  }
+  .app-card {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+}
