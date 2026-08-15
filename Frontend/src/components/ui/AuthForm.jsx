@@ -2,7 +2,7 @@
 import AuthInput from './AuthInput'
 
 // AuthForm.jsx
-const AuthForm = ({ head, para, fields, values, errors, onChange, onSubmit, submitLabel }) => {
+const AuthForm = ({ head, para, fields, values, errors, onChange, onSubmit, submitLabel, res, loading }) => {
     return (
         <div className="flex w-full h-full rounded-lg overflow-hidden shadow-lg bg-surface">
 
@@ -27,14 +27,22 @@ const AuthForm = ({ head, para, fields, values, errors, onChange, onSubmit, subm
 
                     <button
                         type="submit"
-                        className="mt-2 w-full py-3 rounded-md bg-primary text-white font-semibold
-          text-base transition-transform duration-150 hover:opacity-90 active:scale-[0.98]"
+                        disabled={loading}
+                        className="mt-2 cursor-pointer w-full py-3 rounded-md bg-primary text-white font-semibold
+    text-base transition-transform duration-150 hover:opacity-90 active:scale-[0.98]"
                     >
-                        {submitLabel}
+                        {loading ? (
+                            <span className="flex justify-center items-center gap-2">
+                                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                Processing...
+                            </span>
+                        ) : (
+                            submitLabel
+                        )}
                     </button>
+                    <div className='text-success mb-2'>{res}</div>
                 </form>
             </div>
-{/* bg-[#F8F7F9] */}
             <div className="hidden md:block w-1/2 h-full  bg-[#F6F4FA]">
                 <img
                     className="w-full h-full object-contain"

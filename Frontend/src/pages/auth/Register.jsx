@@ -1,6 +1,8 @@
 // Register.jsx
 import React, { useState } from 'react'
 import AuthForm from '../../components/ui/AuthForm'
+import * as api from "../../api/AuthApi"
+
 
 const registerFields = [
     { label: "E-mail", type: "email", name: "email", placeholder: "example@gmail.com", icon: "https://www.svgrepo.com/show/511917/email-1572.svg" },
@@ -10,19 +12,37 @@ const registerFields = [
 ]
 
 const Register = () => {
-    const [formData, setFormData] = useState({ email: '', username: '', password: '' })
+    const [formData, setFormData] = useState({ email: '', username: '', password: '', confirmPassword: '' })
     const [errors, setErrors] = useState({})
     const [head, setHead] = useState('Create your account')
     const [para, setPara] = useState('Sign up to get started')
+    const [res, setRes] = useState('')
+    const [loading, setLoading] = useState(false);
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        // validation + submit logic goes here
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setLoading(true);
+
+        try {
+            const message = await api.Signup(formData);
+            setRes(message);
+        } finally {
+            setLoading(false);
+        }
+
+        if (message) {
+            setTimeout(() => {
+                navigate("/verify-otp", {
+                    state: { email: formData.email }
+                });
+            }, 1500);
+        }
+    };
 
     return (
         <>
@@ -37,6 +57,8 @@ const Register = () => {
                         onChange={handleChange}
                         onSubmit={handleSubmit}
                         submitLabel="Create account"
+                        res={res}
+                        loading={loading}
                     />
                 </div>
             </div>

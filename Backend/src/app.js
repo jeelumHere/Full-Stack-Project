@@ -7,9 +7,16 @@ import grpRouter from "./routes/grp.routes.js"
 import fileRouter from "./routes/file.routes.js"
 import officeRouter from "./routes/office.routes.js"
 import cookieParser from "cookie-parser"
+import cors from "cors"
+
 
 const upload = multer({storage: multer.memoryStorage()})
 const app = express()
+
+app.use(cors({
+  origin: 'http://localhost:5173', // your frontend port
+  credentials: true
+}));
 
 app.use(express.json())
 app.use(morgan("dev"))
