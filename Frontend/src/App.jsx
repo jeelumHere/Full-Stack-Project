@@ -1,10 +1,11 @@
 import React from 'react'
-
+import AuthInput from './components/ui/AuthInput'
+import Register from './pages/auth/Register'
 const App = () => {
   return (
-    <div className='text-textMuted bg-primary'>
-      I am ReactJS
-    </div>
+    <>
+      <Register/>
+    </>
   )
 }
 
