@@ -7,8 +7,8 @@ import * as api from "../../api/AuthApi"
 const registerFields = [
     { label: "E-mail", type: "email", name: "email", placeholder: "example@gmail.com", icon: "https://www.svgrepo.com/show/511917/email-1572.svg" },
     { label: "Username", type: "text", name: "username", placeholder: "Username", icon: "https://www.svgrepo.com/show/491507/user.svg" },
-    { label: "Password", type: "password", name: "password", placeholder: "Password", icon: "https://www.svgrepo.com/show/381142/password-protection-privacy-access-verification-code.svg" },
-    { label: "Confirm Password", type: "password", name: "confirmPassword", placeholder: "Confirm Password", icon: "https://www.svgrepo.com/show/535485/lock-closed.svg" }
+    { label: "Password", type: "password", name: "password",autoComplete: "new-password", placeholder: "Password", icon: "https://www.svgrepo.com/show/381142/password-protection-privacy-access-verification-code.svg" },
+    { label: "Confirm Password", type: "password", name: "confirmPassword",autoComplete: "new-password", placeholder: "Confirm Password", icon: "https://www.svgrepo.com/show/535485/lock-closed.svg" }
 ]
 
 const Register = () => {

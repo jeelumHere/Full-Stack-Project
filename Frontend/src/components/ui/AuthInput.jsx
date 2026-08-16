@@ -17,7 +17,7 @@ const EyeIcon = ({ open }) => (
   </svg>
 )
 
-const AuthInput = ({ label, type = 'text', name, value = '', onChange, icon, error, required }) => {
+const AuthInput = ({ label, type = 'text', name,autoComplete='', value = '', onChange, icon, error, required }) => {
   const id = useId()
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
@@ -40,6 +40,7 @@ const AuthInput = ({ label, type = 'text', name, value = '', onChange, icon, err
           type={inputType}
           value={value}
           onChange={onChange}
+          autoComplete={autoComplete}
           required={required}
           placeholder=" "
           className={`peer w-full border rounded-md bg-surface text-textMain
