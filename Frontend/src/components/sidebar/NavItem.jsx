@@ -9,8 +9,8 @@ const NavItem = ({ item, collapsed }) => {
       className={({ isActive }) =>
         `group relative flex items-center gap-3 rounded-lg px-3 py-2.5 w-full transition-colors
         ${isActive
-          ? 'bg-white/10 text-white'
-          : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'}`
+          ? 'bg-ActiveSidebar text-textActiveSidebar'
+          : 'text-textInActiveSidebar hover:text-textHoverSidebar hover:bg-HoverSidebar'}`
       }
     >
       {({ isActive }) => (

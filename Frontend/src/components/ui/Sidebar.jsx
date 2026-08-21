@@ -13,7 +13,6 @@ import {
     Settings,
     Sparkles,
     ChevronsLeft,
-    LogOut,
 } from 'lucide-react'
 const navItems = [
     { title: 'Dashboard', path: 'dashboard', icon: LayoutDashboard },
@@ -33,17 +32,17 @@ const Sidebar = () => {
 
     return (
         <aside
-            className={`h-screen hidden md:flex flex-col justify-between bg-[#111214] border-r border-white/5 transition-all duration-200
+            className={`h-screen hidden md:flex flex-col justify-between bg-sidebar border-r border-borderSidebar transition-all duration-200
         ${collapsed ? 'w-19' : 'w-62'}`}
         >
             <div>
                 {/* Brand */}
-                <div className="flex items-center gap-2.5 px-4 h-16 border-b border-white/5">
-                    <div className="h-8 w-8 rounded-md bg-indigo-500 flex items-center justify-center shrink-0">
-                        <Sparkles size={16} className="text-white" />
+                <div className="flex items-center gap-2.5 px-4 h-16 border-b border-borderSidebar">
+                    <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center shrink-0">
+                        <Sparkles size={16} className="text-textActiveSidebar" />
                     </div>
                     {!collapsed && (
-                        <span className="text-sm font-semibold text-white truncate">Brandname</span>
+                        <span className="text-sm font-semibold text-textActiveSidebar truncate">Brandname</span>
                     )}
                 </div>
 
@@ -53,7 +52,7 @@ const Sidebar = () => {
                 </nav>
             </div>
 
-            <div className="p-3 flex flex-col gap-1 border-t border-white/5">
+            <div className="p-3 flex flex-col gap-1 border-t border-borderSidebar">
 
                 {/* Bottom Nav  */}
                 <BottomItem collapsed={collapsed} />
@@ -61,7 +60,7 @@ const Sidebar = () => {
                 {/* Collapse toggle */}
                 <button
                     onClick={() => setCollapsed((c) => !c)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 w-full text-left text-zinc-400 hover:text-zinc-100 hover:bg-white/5 transition-colors"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 w-full text-left text-textInActiveSidebar hover:text-textHoverSidebar hover:bg-borderSidebar transition-colors"
                 >
                     <ChevronsLeft
                         size={18}
