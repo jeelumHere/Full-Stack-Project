@@ -5,18 +5,25 @@ import Dasboard from './pages/Dasboard'
 import Home from './pages/Home'
 import UpperItem from './components/sidebar/UpperItem'
 import Navbar from './components/ui/Navbar'
-
+import VerifyEmail from './pages/auth/VerifyEmail'
+import Register from "./pages/auth/Register"
+import GetOtp from './pages/auth/getOtp'
+import Login from './pages/auth/Login'
 
 const App = () => {
   return (
     <BrowserRouter>
-      <Navbar />
       <div className="flex h-screen">
-        <Sidebar />
         <main className="flex-1 overflow-y-auto">
           <Routes>
             <Route path='/' element={<Home />} />
-            <Route path='dashboard' element={<Dasboard />} />
+            <Route path='register' element={<Register />} />
+            <Route path='login' element={<Login />} />
+            <Route path='getOtp' element={<GetOtp />} />
+            <Route path='verifyEmail' element={<VerifyEmail />} />
+            <Route>
+              <Route path='dashboard' element={<><Sidebar /><Navbar /><Dasboard /></>} />
+            </Route>
           </Routes>
         </main>
       </div>

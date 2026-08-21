@@ -1,8 +1,9 @@
 // components/ui/AuthForm.jsx
 import AuthInput from './AuthInput'
+import { Link } from 'react-router-dom'
 
 // AuthForm.jsx
-const AuthForm = ({ head, para, fields, values, errors, onChange, onSubmit, submitLabel, res, loading }) => {
+const AuthForm = ({ head, para, fields, values, errors, onChange, onSubmit, submitLabel, res, loading,div,link,linkNavigate }) => {
     return (
         <div className="flex w-full h-full rounded-lg overflow-hidden shadow-lg bg-surface">
 
@@ -40,6 +41,9 @@ const AuthForm = ({ head, para, fields, values, errors, onChange, onSubmit, subm
                             submitLabel
                         )}
                     </button>
+                    <div className='flex'>
+                        <div>{div}</div><Link to={linkNavigate} className='text-blue-700 hover:underline'>{link}</Link>
+                    </div>
                     <div className='text-success mb-2'>{res}</div>
                 </form>
             </div>

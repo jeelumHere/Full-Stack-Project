@@ -4,21 +4,20 @@ import * as api from "../../api/AuthApi"
 import { useNavigate } from 'react-router-dom'
 
 
-const loginFields = [
-  { label: "Username Or Email", type: "text", name: "usernameOrEmail", placeholder: "Username or Email", icon: "https://www.svgrepo.com/show/491507/user.svg" },
-  { label: "Password", type: "password", name: "password", autoComplete: "new-password", placeholder: "Password", icon: "https://www.svgrepo.com/show/381142/password-protection-privacy-access-verification-code.svg" }
+const GetOtpFields = [
+  { label: "Username or Email", type: "email", name: "usernameOrEmail", placeholder: "Username or Email", icon: "https://www.svgrepo.com/show/511917/email-1572.svg" },
 ]
 
-const Login = () => {
+const GetOtp = () => {
   const navigate = useNavigate()
-  const [formData, setFormData] = useState({ usernameOrEmail: '', password: '' })
+  const [formData, setFormData] = useState({ email: '' })
   const [errors, setErrors] = useState({})
-  const [head, setHead] = useState('Login to your account')
-  const [para, setPara] = useState('Login to get started')
+  const [head, setHead] = useState('OTP Verification')
+  const [para, setPara] = useState('Otp will be send to your registered email')
   const [res, setRes] = useState('')
-  const [div, setDiv] = useState("Didn't have an account?")
-  const [link, setLink] = useState('Create One')
-  const [linkNavigate, setLinkNavigate] = useState('/register')
+  const [div, setDiv] = useState("")
+  const [link, setLink] = useState('')
+  const [linkNavigate, setLinkNavigate] = useState('')
   const [loading, setLoading] = useState(false);
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -30,16 +29,18 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.Login(formData);
+      const response = await api.getOtp(formData);
       setRes(response.message);
 
-      console.log(response.User.isEmailVerified);
+      
+      setTimeout(() => {
+        console.log(response.User.isEmailVerified);
+      }, 1000);
       if (response.success) {
         if (response.User.isEmailVerified) {
           setTimeout(() => navigate("/"), 1000);
         } else {
-          await api.getOtp(formData)
-          setTimeout(() => navigate("/verifyEmail"), 1000);
+          setTimeout(() => navigate("/verifyOtp"), 1000);
         }
       }
     }
@@ -58,12 +59,12 @@ const Login = () => {
           <AuthForm
             para={para}
             head={head}
-            fields={loginFields}
+            fields={GetOtpFields}
             values={formData}
             errors={errors}
             onChange={handleChange}
             onSubmit={handleSubmit}
-            submitLabel="Login"
+            submitLabel="Send Otp"
             res={res}
             loading={loading}
             div={div}
@@ -77,4 +78,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default GetOtp

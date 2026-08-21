@@ -77,7 +77,7 @@ export async function login(req, res) {
 
         const { password: _, ...userWithoutPassword } = user.toObject()
 
-        await getTheOtp(req, res, user.email)
+        // await getTheOtp(req, res, user.email)
 
         const refreshToken = jwt.sign({ id: user._id, role: user.role }, config.jwtRefreshSecret, { expiresIn: "7d" })
         const accessToken = jwt.sign({ id: user._id, role: user.role }, config.jwtAccessSecret, { expiresIn: "15m" })
@@ -152,14 +152,17 @@ export async function verifyEmail(req, res) {
 
 export async function getOtp(req, res) {
     try {
-        const { email } = req.body
-        const user = await userModel.findOne({ email: email })
+        const { usernameOrEmail } = req.body
+        const user = await userModel.findOne({
+            $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
+        })
         await otpModel.deleteMany({ user: user._id })
 
-        await getTheOtp(req, res, email)
+        await getTheOtp(req, res, user.email)
 
         return res.status(201).json({
-            message: "otp sent successfully"
+            message: "Otp sent successfully",
+            User : user
         })
     }
     catch (err) {
@@ -270,19 +273,19 @@ export async function setNewPassword(req, res) {
             })
         }
 
-        const newPasswordHash = await bcrypt.hash(newPassword,10)
+        const newPasswordHash = await bcrypt.hash(newPassword, 10)
 
         user.password = newPasswordHash
         await user.save()
 
         return res.status(200).json({
-            message : "Password updated successfully"
+            message: "Password updated successfully"
         })
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            error : "Server Error",
-            message : err.message
+            error: "Server Error",
+            message: err.message
         })
     }
 }

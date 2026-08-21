@@ -19,6 +19,9 @@ const Register = () => {
     const [head, setHead] = useState('Create your account')
     const [para, setPara] = useState('Sign up to get started')
     const [res, setRes] = useState('')
+    const [div, setDiv] = useState("Already have an account?")
+    const [link, setLink] = useState('Login')
+    const [linkNavigate, setLinkNavigate] = useState('/login')
     const [loading, setLoading] = useState(false);
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -35,7 +38,7 @@ const Register = () => {
 
             if (response.success) {
                 setTimeout(() => {
-                    navigate("/verifyOtp");
+                    navigate("/verifyEmail");
                 }, 1000);
             }
         } catch (err) {
@@ -48,7 +51,7 @@ const Register = () => {
     return (
         <>
             <div className="h-screen flex justify-center items-center p-4">
-                <div className="w-full md:w-[75%] h-[75%]">
+                <div className="w-full md:w-[75%] md:h-[75%]">
                     <AuthForm
                         para={para}
                         head={head}
@@ -60,6 +63,9 @@ const Register = () => {
                         submitLabel="Create account"
                         res={res}
                         loading={loading}
+                        div={div}
+                        link={link}
+                        linkNavigate={linkNavigate}
                     />
                 </div>
             </div>
