@@ -53,3 +53,17 @@ export async function getOtp(formData) {
         };
     }
 }
+
+export async function setNewPassword(formData) {
+    try {
+        const res = await axios.post("/api/auth/setNewPassword", formData)
+        return { success: true, ...res.data }
+    }
+    catch (error) {
+        console.log(error.response);
+        return { 
+          success: false, 
+          message: error.response?.data?.message || "Server Error" 
+        };
+    }
+}
