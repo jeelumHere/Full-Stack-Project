@@ -32,7 +32,16 @@ export const validateUserInput = [
 
 export async function validateUserAccessToken(req, res, next) {
     try {
-        const accessToken = req.headers.authorization.split(" ")[1]
+        const authHeader = req.headers.authorization
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                message: "Access token not found"
+            })
+        }
+
+        const accessToken = authHeader.split(" ")[1]
+        // const accessToken = req.headers.authorization.split(" ")[1]
 
         const refreshToken = req.cookies.refreshToken;
 
@@ -58,9 +67,9 @@ export async function validateUserAccessToken(req, res, next) {
             })
         }
 
-        if(!user.isEmailVerified){
+        if (!user.isEmailVerified) {
             return res.status(403).json({
-                message : "Email not verified"
+                message: "Email not verified"
             })
         }
 
@@ -71,7 +80,7 @@ export async function validateUserAccessToken(req, res, next) {
             })
         }
 
-        const session = await sessionModel.findOne({deviceId:deviceId, user: user._id })
+        const session = await sessionModel.findOne({ deviceId: deviceId, user: user._id })
         if (!session) {
             return res.status(404).json({
                 message: "session not found"
@@ -83,6 +92,18 @@ export async function validateUserAccessToken(req, res, next) {
         next()
     }
     catch (err) {
+        if (err.name === "TokenExpiredError") {
+            return res.status(401).json({
+                message: "Access token expired"
+            })
+        }
+
+        if (err.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                message: "Invalid access token"
+            })
+        }
+
         return res.status(500).json({
             error: "Server Error",
             message: err.message
@@ -112,9 +133,9 @@ export async function validateUserRefreshToken(req, res, next) {
             })
         }
 
-        if(!user.isEmailVerified){
+        if (!user.isEmailVerified) {
             return res.status(403).json({
-                message : "Email not verified"
+                message: "Email not verified"
             })
         }
 
@@ -125,7 +146,7 @@ export async function validateUserRefreshToken(req, res, next) {
             })
         }
 
-        const session = await sessionModel.findOne({deviceId:deviceId, user: user._id })
+        const session = await sessionModel.findOne({ deviceId: deviceId, user: user._id })
         if (!session) {
             return res.status(404).json({
                 message: "session not found"

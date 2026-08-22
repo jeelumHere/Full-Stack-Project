@@ -1,5 +1,5 @@
 import axios from "axios"
-import api from "./axios"
+// import api from "./ApiClient"
 
 export async function signup(formData) {
     try {
@@ -57,6 +57,7 @@ export async function getOtp(formData) {
 export async function refreshToken() {
     try {
         const res = await axios.post("/api/auth/refreshToken")
+        console.log(res.data);
         return { success: true, ...res.data }
     }
     catch (error) {
