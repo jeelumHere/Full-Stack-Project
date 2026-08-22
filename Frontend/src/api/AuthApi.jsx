@@ -1,7 +1,7 @@
 import axios from "axios"
 import api from "./axios"
 
-export async function Signup(formData) {
+export async function signup(formData) {
     try {
         const res = await axios.post("/api/auth/register", formData)
         return { success: true, ...res.data }
@@ -13,7 +13,7 @@ export async function Signup(formData) {
         };
     }
 }
-export async function Login(formData) {
+export async function login(formData) {
     try {
         const res = await axios.post("/api/auth/login", formData)
         return { success: true, ...res.data }
@@ -50,6 +50,34 @@ export async function getOtp(formData) {
         return { 
           success: false, 
           message: error.response?.data?.message || "Not a verified email" 
+        };
+    }
+}
+
+export async function refreshToken() {
+    try {
+        const res = await axios.post("/api/auth/refreshToken")
+        return { success: true, ...res.data }
+    }
+    catch (error) {
+        console.log(error.response);
+        return { 
+          success: false, 
+          message: error.response?.data?.message || "Not a valid request" 
+        };
+    }
+}
+
+export async function getMe() {
+    try {
+        const res = await axios.get("/api/auth/getMe")
+        return { success: true, ...res.data }
+    }
+    catch (error) {
+        console.log(error.response);
+        return { 
+          success: false, 
+          message: error.response?.data?.message || "Not a valid request" 
         };
     }
 }

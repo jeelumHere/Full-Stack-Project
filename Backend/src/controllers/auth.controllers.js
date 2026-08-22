@@ -203,7 +203,8 @@ export async function refreshToken(req, res) {
 
         return res.status(200).json({
             message: "Token refreshed",
-            accessToken
+            accessToken,
+            User: user
         })
     }
     catch (err) {

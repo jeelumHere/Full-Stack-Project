@@ -10,26 +10,29 @@ import Register from "./pages/auth/Register"
 import GetOtp from './pages/auth/getOtp'
 import Login from './pages/auth/Login'
 import ReSetPassword from './pages/auth/ReSetPassword'
+import AuthProvider  from './context/AuthContext'
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <div className="flex h-screen">
-        <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route path='/' element={<Home />} />
-            <Route path='register' element={<Register />} />
-            <Route path='login' element={<Login />} />
-            <Route path='getOtp' element={<GetOtp />} />
-            <Route path='verifyEmail' element={<VerifyEmail />} />
-            <Route path='ReSetPassword' element={<ReSetPassword />} />
-            <Route>
-              <Route path='dashboard' element={<><Sidebar /><Navbar /><Dasboard /></>} />
-            </Route>
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="flex h-screen">
+          <main className="flex-1 overflow-y-auto">
+            <Routes>
+              <Route path='/' element={<Home />} />
+              <Route path='register' element={<Register />} />
+              <Route path='login' element={<Login />} />
+              <Route path='getOtp' element={<GetOtp />} />
+              <Route path='verifyEmail' element={<VerifyEmail />} />
+              <Route path='ReSetPassword' element={<ReSetPassword />} />
+              <Route>
+                <Route path='dashboard' element={<><Sidebar /><Navbar /><Dasboard /></>} />
+              </Route>
+            </Routes>
+          </main>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

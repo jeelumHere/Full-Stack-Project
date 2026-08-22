@@ -55,7 +55,7 @@ const AuthInput = ({ label, type = 'text', name,autoComplete='', value = '', onC
           className={`absolute ${icon ? 'left-9' : 'left-3'} top-1/2 -translate-y-1/2
             text-textMuted text-base transition-all duration-150 pointer-events-none
             peer-focus:top-3 peer-focus:text-xs peer-focus:text-primary
-            peer-[:not(:placeholder-shown)]:top-3 peer-[:not(:placeholder-shown)]:text-xs`}
+            peer-not-placeholder-shown:top-3 peer-not-placeholder-shown:text-xs`}
         >
           {label}
         </label>
